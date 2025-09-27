@@ -16,8 +16,13 @@ vi.mock('react-router-dom', async () => {
 })
 
 // Mock axios
-vi.mock('axios')
-const mockedAxios = axios as {
+vi.mock('axios', () => ({
+  default: {
+    post: vi.fn(),
+  }
+}))
+
+const mockedAxios = axios as unknown as {
   post: ReturnType<typeof vi.fn>
 }
 

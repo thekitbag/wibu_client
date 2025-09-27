@@ -5,8 +5,13 @@ import axios from 'axios'
 import JourneyDetails from './JourneyDetails'
 
 // Mock axios
-vi.mock('axios')
-const mockedAxios = axios as {
+vi.mock('axios', () => ({
+  default: {
+    get: vi.fn(),
+  }
+}))
+
+const mockedAxios = axios as unknown as {
   get: ReturnType<typeof vi.fn>
 }
 
