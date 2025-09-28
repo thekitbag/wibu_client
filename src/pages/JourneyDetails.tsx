@@ -1,11 +1,20 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import axios from 'axios'
-import { Container, Box, Typography, Card, CardContent, CircularProgress, Alert, Button } from '@mui/material'
+import { Container, Box, Typography, Card, CardContent, CircularProgress, Alert, Button, TextField, CardMedia } from '@mui/material'
+
+interface Stop {
+  id: string
+  title: string
+  note?: string
+  image_url: string
+  order: number
+}
 
 interface Journey {
   id: string
   title: string
+  stops?: Stop[]
 }
 
 const JourneyDetails = () => {
@@ -13,6 +22,13 @@ const JourneyDetails = () => {
   const [journey, setJourney] = useState<Journey | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+
+  // Add Stop form state
+  const [stopTitle, setStopTitle] = useState('')
+  const [stopNote, setStopNote] = useState('')
+  const [stopImageUrl, setStopImageUrl] = useState('')
+  const [isAddingStop, setIsAddingStop] = useState(false)
+  const [addStopError, setAddStopError] = useState('')
 
   useEffect(() => {
     const fetchJourney = async () => {
@@ -35,6 +51,53 @@ const JourneyDetails = () => {
 
     fetchJourney()
   }, [id])
+
+  const handleAddStop = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!stopTitle.trim() || !stopImageUrl.trim()) {
+      setAddStopError('Title and image URL are required')
+      return
+    }
+
+    if (!id) {
+      setAddStopError('No journey ID available')
+      return
+    }
+
+    setIsAddingStop(true)
+    setAddStopError('')
+
+    try {
+      const response = await axios.post(`/api/journeys/${id}/stops`, {
+        title: stopTitle.trim(),
+        note: stopNote.trim() || undefined,
+        image_url: stopImageUrl.trim()
+      })
+
+      const newStop = response.data
+
+      // Update journey state to include the new stop
+      setJourney(prevJourney => {
+        if (!prevJourney) return prevJourney
+        const stops = prevJourney.stops || []
+        return {
+          ...prevJourney,
+          stops: [...stops, newStop].sort((a, b) => a.order - b.order)
+        }
+      })
+
+      // Clear form
+      setStopTitle('')
+      setStopNote('')
+      setStopImageUrl('')
+    } catch (err) {
+      setAddStopError('Failed to add stop. Please try again.')
+      console.error('Error adding stop:', err)
+    } finally {
+      setIsAddingStop(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -102,104 +165,272 @@ const JourneyDetails = () => {
   }
 
   return (
-    <Container maxWidth="md">
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          gap: 4,
-          px: 2
-        }}
-      >
-        <Box sx={{ textAlign: 'center', mb: 2 }}>
+    <Container maxWidth="lg">
+      <Box sx={{ py: 4, px: 2 }}>
+        {/* Journey Header */}
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
           <Typography
             variant="h3"
             component="h1"
             sx={{
               fontWeight: 600,
               fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
-              color: 'success.main',
+              color: 'primary.main',
               mb: 2
             }}
           >
-            Journey Created Successfully!
+            {journey?.title}
           </Typography>
           <Typography
             variant="body1"
             color="text.secondary"
             sx={{
               fontSize: '1.1rem',
-              maxWidth: '600px'
+              maxWidth: '600px',
+              mx: 'auto'
             }}
           >
-            Your journey has been created and is ready to be shared
+            Build your journey by adding meaningful stops
           </Typography>
         </Box>
 
-        {journey && (
-          <Card
-            sx={{
-              minWidth: 320,
-              maxWidth: 550,
-              width: '100%',
-              boxShadow: 3,
-              borderRadius: 2
-            }}
-          >
-            <CardContent
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4 }}>
+          {/* Existing Stops Section */}
+          <Box sx={{ flex: { md: 2 } }}>
+            <Typography
+              variant="h5"
               sx={{
-                textAlign: 'center',
-                py: 4,
-                px: 3
+                fontWeight: 600,
+                mb: 3,
+                color: 'primary.main'
+              }}
+            >
+              Your Journey Stops
+            </Typography>
+
+            {journey?.stops && journey.stops.length > 0 ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {journey.stops
+                  .sort((a, b) => a.order - b.order)
+                  .map((stop, index) => (
+                    <Card
+                      key={stop.id}
+                      sx={{
+                        boxShadow: 2,
+                        borderRadius: 2,
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' } }}>
+                        <Box sx={{ width: { xs: '100%', sm: '33%' } }}>
+                          <CardMedia
+                            component="img"
+                            sx={{
+                              height: { xs: 200, sm: '100%' },
+                              minHeight: { sm: 180 },
+                              objectFit: 'cover'
+                            }}
+                            image={stop.image_url}
+                            alt={stop.title}
+                          />
+                        </Box>
+                        <Box sx={{ flex: 1 }}>
+                          <CardContent sx={{ p: 3 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                              <Typography
+                                variant="h6"
+                                sx={{
+                                  fontWeight: 600,
+                                  color: 'primary.main',
+                                  mr: 2
+                                }}
+                              >
+                                Stop {index + 1}
+                              </Typography>
+                              <Typography
+                                variant="h5"
+                                sx={{
+                                  fontWeight: 600,
+                                  flex: 1
+                                }}
+                              >
+                                {stop.title}
+                              </Typography>
+                            </Box>
+                            {stop.note && (
+                              <Typography
+                                variant="body1"
+                                color="text.secondary"
+                                sx={{ lineHeight: 1.6 }}
+                              >
+                                {stop.note}
+                              </Typography>
+                            )}
+                          </CardContent>
+                        </Box>
+                      </Box>
+                    </Card>
+                  ))}
+              </Box>
+            ) : (
+              <Card
+                sx={{
+                  p: 4,
+                  textAlign: 'center',
+                  backgroundColor: 'grey.50',
+                  border: '2px dashed',
+                  borderColor: 'grey.300'
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{ mb: 2, fontWeight: 500 }}
+                >
+                  No stops yet
+                </Typography>
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                >
+                  Add your first stop to start building your journey!
+                </Typography>
+              </Card>
+            )}
+          </Box>
+
+          {/* Add Stop Form */}
+          <Box sx={{ flex: 1, minWidth: { md: 350 } }}>
+            <Card
+              sx={{
+                p: 3,
+                boxShadow: 3,
+                borderRadius: 2,
+                position: 'sticky',
+                top: 24
               }}
             >
               <Typography
-                variant="h4"
-                component="h2"
+                variant="h5"
                 sx={{
                   fontWeight: 600,
-                  fontSize: { xs: '1.5rem', sm: '2rem' },
-                  color: 'primary.main',
                   mb: 3,
-                  lineHeight: 1.3
+                  color: 'primary.main'
                 }}
               >
-                {journey.title}
+                Add New Stop
               </Typography>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{
-                  fontSize: '0.95rem',
-                  fontWeight: 500,
-                  letterSpacing: 0.5
-                }}
-              >
-                Journey ID: {journey.id}
-              </Typography>
-            </CardContent>
-          </Card>
-        )}
 
-        <Button
-          component={Link}
-          to="/create"
-          variant="contained"
-          size="large"
-          sx={{
-            px: 4,
-            py: 1.5,
-            fontSize: '1.1rem',
-            fontWeight: 600,
-            textTransform: 'none',
-            mt: 2
-          }}
-        >
-          Create Another Journey
-        </Button>
+              <Box
+                component="form"
+                onSubmit={handleAddStop}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 3
+                }}
+              >
+                <TextField
+                  fullWidth
+                  label="Stop Title"
+                  placeholder="Enter stop title"
+                  value={stopTitle}
+                  onChange={(e) => setStopTitle(e.target.value)}
+                  disabled={isAddingStop}
+                  required
+                  variant="outlined"
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      fontSize: '1rem',
+                      fontWeight: 500
+                    }
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Image URL"
+                  placeholder="https://example.com/image.jpg"
+                  value={stopImageUrl}
+                  onChange={(e) => setStopImageUrl(e.target.value)}
+                  disabled={isAddingStop}
+                  required
+                  variant="outlined"
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      fontSize: '1rem',
+                      fontWeight: 500
+                    }
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Note (Optional)"
+                  placeholder="Add a note about this stop"
+                  value={stopNote}
+                  onChange={(e) => setStopNote(e.target.value)}
+                  disabled={isAddingStop}
+                  multiline
+                  rows={3}
+                  variant="outlined"
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      fontSize: '1rem',
+                      fontWeight: 500
+                    }
+                  }}
+                />
+
+                {addStopError && (
+                  <Alert
+                    severity="error"
+                    sx={{
+                      fontSize: '0.95rem',
+                      '& .MuiAlert-message': {
+                        fontWeight: 500
+                      }
+                    }}
+                  >
+                    {addStopError}
+                  </Alert>
+                )}
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={isAddingStop}
+                  size="large"
+                  startIcon={isAddingStop ? <CircularProgress size={20} /> : null}
+                  sx={{
+                    py: 1.5,
+                    fontSize: '1.1rem',
+                    fontWeight: 600,
+                    textTransform: 'none'
+                  }}
+                >
+                  {isAddingStop ? 'Adding Stop...' : 'Add Stop'}
+                </Button>
+              </Box>
+            </Card>
+
+            <Box sx={{ mt: 3, textAlign: 'center' }}>
+              <Button
+                component={Link}
+                to="/create"
+                variant="outlined"
+                sx={{
+                  px: 3,
+                  py: 1,
+                  fontSize: '1rem',
+                  fontWeight: 500,
+                  textTransform: 'none'
+                }}
+              >
+                Create Another Journey
+              </Button>
+            </Box>
+          </Box>
+        </Box>
       </Box>
     </Container>
   )
