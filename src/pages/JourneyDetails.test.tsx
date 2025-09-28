@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import axios from 'axios'
 import JourneyDetails from './JourneyDetails'
@@ -48,7 +48,8 @@ describe('JourneyDetails Component', () => {
   it('displays journey details when successfully loaded', async () => {
     const mockJourney = {
       id: 'test-journey-id',
-      title: 'My Amazing Journey'
+      title: 'My Amazing Journey',
+      stops: []
     }
 
     mockedAxios.get.mockResolvedValueOnce({ data: mockJourney })
@@ -56,18 +57,20 @@ describe('JourneyDetails Component', () => {
     renderWithRouter(<JourneyDetails />, '/journeys/test-journey-id')
 
     await waitFor(() => {
-      expect(screen.getByText('Journey Created Successfully!')).toBeInTheDocument()
+      expect(screen.getByText('My Amazing Journey')).toBeInTheDocument()
     })
 
-    expect(screen.getByText('My Amazing Journey')).toBeInTheDocument()
-    expect(screen.getByText('Journey ID: test-journey-id')).toBeInTheDocument()
+    expect(screen.getByText('Your Journey Stops')).toBeInTheDocument()
+    expect(screen.getByText('No stops yet')).toBeInTheDocument()
+    expect(screen.getByText('Add New Stop')).toBeInTheDocument()
     expect(screen.getByText('Create Another Journey')).toBeInTheDocument()
   })
 
   it('makes correct API call with journey ID from URL params', async () => {
     const mockJourney = {
       id: 'specific-journey-id',
-      title: 'Test Journey'
+      title: 'Test Journey',
+      stops: []
     }
 
     mockedAxios.get.mockResolvedValueOnce({ data: mockJourney })
@@ -113,7 +116,8 @@ describe('JourneyDetails Component', () => {
     for (const journeyId of journeyIds) {
       const mockJourney = {
         id: journeyId,
-        title: `Journey ${journeyId}`
+        title: `Journey ${journeyId}`,
+        stops: []
       }
 
       mockedAxios.get.mockResolvedValueOnce({ data: mockJourney })
@@ -126,7 +130,6 @@ describe('JourneyDetails Component', () => {
 
       await waitFor(() => {
         expect(screen.getByText(`Journey ${journeyId}`)).toBeInTheDocument()
-        expect(screen.getByText(`Journey ID: ${journeyId}`)).toBeInTheDocument()
       })
 
       // Clean up for next iteration
@@ -138,7 +141,8 @@ describe('JourneyDetails Component', () => {
   it('has correct link to create another journey', async () => {
     const mockJourney = {
       id: 'test-journey-id',
-      title: 'Test Journey'
+      title: 'Test Journey',
+      stops: []
     }
 
     mockedAxios.get.mockResolvedValueOnce({ data: mockJourney })
@@ -173,7 +177,7 @@ describe('JourneyDetails Component', () => {
     renderWithRouter(<JourneyDetails />, '/journeys/test-id')
 
     await waitFor(() => {
-      expect(screen.getByText('Journey Created Successfully!')).toBeInTheDocument()
+      expect(screen.getByText('Add New Stop')).toBeInTheDocument()
     })
 
     // Should not crash and still show the layout
@@ -183,7 +187,8 @@ describe('JourneyDetails Component', () => {
   it('shows journey with special characters in title', async () => {
     const mockJourney = {
       id: 'test-journey-id',
-      title: 'Journey with émojis 🚀 & special chars!'
+      title: 'Journey with émojis 🚀 & special chars!',
+      stops: []
     }
 
     mockedAxios.get.mockResolvedValueOnce({ data: mockJourney })
@@ -192,6 +197,87 @@ describe('JourneyDetails Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Journey with émojis 🚀 & special chars!')).toBeInTheDocument()
+    })
+  })
+
+  describe('Stops functionality', () => {
+    it('displays existing stops when journey has stops', async () => {
+      const mockJourney = {
+        id: 'test-journey-id',
+        title: 'Test Journey',
+        stops: [
+          {
+            id: 'stop-1',
+            title: 'First Stop',
+            note: 'This is the first stop',
+            image_url: 'https://example.com/image1.jpg',
+            order: 1
+          },
+          {
+            id: 'stop-2',
+            title: 'Second Stop',
+            image_url: 'https://example.com/image2.jpg',
+            order: 2
+          }
+        ]
+      }
+
+      mockedAxios.get.mockResolvedValueOnce({ data: mockJourney })
+
+      renderWithRouter(<JourneyDetails />, '/journeys/test-journey-id')
+
+      await waitFor(() => {
+        expect(screen.getByText('First Stop')).toBeInTheDocument()
+        expect(screen.getByText('Second Stop')).toBeInTheDocument()
+        expect(screen.getByText('This is the first stop')).toBeInTheDocument()
+        expect(screen.getByText('Stop 1')).toBeInTheDocument()
+        expect(screen.getByText('Stop 2')).toBeInTheDocument()
+      })
+    })
+
+    it('shows add stop form fields', async () => {
+      const mockJourney = {
+        id: 'test-journey-id',
+        title: 'Test Journey',
+        stops: []
+      }
+
+      mockedAxios.get.mockResolvedValueOnce({ data: mockJourney })
+
+      renderWithRouter(<JourneyDetails />, '/journeys/test-journey-id')
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/Stop Title/)).toBeInTheDocument()
+        expect(screen.getByLabelText(/Image URL/)).toBeInTheDocument()
+        expect(screen.getByLabelText(/Note \(Optional\)/)).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Add Stop' })).toBeInTheDocument()
+      })
+    })
+
+    it('shows validation error when submitting empty form', async () => {
+      const mockJourney = {
+        id: 'test-journey-id',
+        title: 'Test Journey',
+        stops: []
+      }
+
+      mockedAxios.get.mockResolvedValueOnce({ data: mockJourney })
+
+      renderWithRouter(<JourneyDetails />, '/journeys/test-journey-id')
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Add Stop' })).toBeInTheDocument()
+      })
+
+      // Find the form and submit it directly
+      const form = screen.getByRole('button', { name: 'Add Stop' }).closest('form')
+      expect(form).toBeInTheDocument()
+
+      fireEvent.submit(form!)
+
+      await waitFor(() => {
+        expect(screen.getByText('Title and image URL are required')).toBeInTheDocument()
+      })
     })
   })
 })

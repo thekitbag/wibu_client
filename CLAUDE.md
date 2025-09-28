@@ -1,0 +1,1 @@
+- always check tests pass before declaring you are finished with a task
