@@ -42,7 +42,7 @@ describe('JourneyDetails Component', () => {
 
     renderWithRouter(<JourneyDetails />, '/journeys/test-id')
 
-    expect(screen.getByText('Loading...')).toBeInTheDocument()
+    expect(screen.getByRole('progressbar')).toBeInTheDocument()
   })
 
   it('displays journey details when successfully loaded', async () => {

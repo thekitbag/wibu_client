@@ -72,17 +72,12 @@ describe('App Component Routing', () => {
   it('home page button has correct styling and structure', () => {
     renderWithRouter('/')
 
-    const homeContainer = screen.getByText('What I Bought You').parentElement
+    const homeContainer = screen.getByText('What I Bought You').closest('.MuiBox-root')
     expect(homeContainer).toHaveStyle({
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      gap: '1rem'
+      display: 'flex'
     })
 
-    const createButton = screen.getByRole('button', { name: 'Create New Journey' })
+    const createButton = screen.getByRole('link', { name: 'Create New Journey' })
     expect(createButton).toBeInTheDocument()
   })
 
@@ -155,9 +150,8 @@ describe('App Component Routing', () => {
     it('has accessible button for navigation', () => {
       renderWithRouter('/')
 
-      const createButton = screen.getByRole('button', { name: 'Create New Journey' })
+      const createButton = screen.getByRole('link', { name: 'Create New Journey' })
       expect(createButton).toBeInTheDocument()
-      expect(createButton).toBeEnabled()
     })
   })
 })

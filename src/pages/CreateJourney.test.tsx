@@ -49,7 +49,7 @@ describe('CreateJourney Component', () => {
 
     expect(screen.getByText('Create New Journey')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Enter journey title')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Create Journey' })).toBeInTheDocument()
   })
 
   it('updates input value when user types', async () => {
@@ -65,7 +65,7 @@ describe('CreateJourney Component', () => {
   it('shows error when submitting empty title', async () => {
     renderWithRouter(<CreateJourney />)
 
-    const createButton = screen.getByRole('button', { name: 'Create' })
+    const createButton = screen.getByRole('button', { name: 'Create Journey' })
 
     fireEvent.click(createButton)
 
@@ -78,7 +78,7 @@ describe('CreateJourney Component', () => {
     renderWithRouter(<CreateJourney />)
 
     const titleInput = screen.getByPlaceholderText('Enter journey title')
-    const createButton = screen.getByRole('button', { name: 'Create' })
+    const createButton = screen.getByRole('button', { name: 'Create Journey' })
 
     fireEvent.change(titleInput, { target: { value: '   ' } })
     fireEvent.click(createButton)
@@ -95,7 +95,7 @@ describe('CreateJourney Component', () => {
     renderWithRouter(<CreateJourney />)
 
     const titleInput = screen.getByPlaceholderText('Enter journey title')
-    const createButton = screen.getByRole('button', { name: 'Create' })
+    const createButton = screen.getByRole('button', { name: 'Create Journey' })
 
     fireEvent.change(titleInput, { target: { value: 'Test Journey' } })
     fireEvent.click(createButton)
@@ -119,7 +119,7 @@ describe('CreateJourney Component', () => {
     renderWithRouter(<CreateJourney />)
 
     const titleInput = screen.getByPlaceholderText('Enter journey title')
-    const createButton = screen.getByRole('button', { name: 'Create' })
+    const createButton = screen.getByRole('button', { name: 'Create Journey' })
 
     fireEvent.change(titleInput, { target: { value: 'Test Journey' } })
     fireEvent.click(createButton)
@@ -137,7 +137,7 @@ describe('CreateJourney Component', () => {
     renderWithRouter(<CreateJourney />)
 
     const titleInput = screen.getByPlaceholderText('Enter journey title')
-    const createButton = screen.getByRole('button', { name: 'Create' })
+    const createButton = screen.getByRole('button', { name: 'Create Journey' })
 
     fireEvent.change(titleInput, { target: { value: 'Test Journey' } })
     fireEvent.click(createButton)
@@ -162,7 +162,7 @@ describe('CreateJourney Component', () => {
     renderWithRouter(<CreateJourney />)
 
     const titleInput = screen.getByPlaceholderText('Enter journey title')
-    const createButton = screen.getByRole('button', { name: 'Create' })
+    const createButton = screen.getByRole('button', { name: 'Create Journey' })
 
     fireEvent.change(titleInput, { target: { value: 'Test Journey' } })
     fireEvent.click(createButton)
@@ -190,7 +190,7 @@ describe('CreateJourney Component', () => {
     renderWithRouter(<CreateJourney />)
 
     const titleInput = screen.getByPlaceholderText('Enter journey title')
-    const createButton = screen.getByRole('button', { name: 'Create' })
+    const createButton = screen.getByRole('button', { name: 'Create Journey' })
 
     fireEvent.change(titleInput, { target: { value: 'Test Journey' } })
     fireEvent.click(createButton)
