@@ -9,6 +9,9 @@ vi.mock('axios', () => ({
   default: {
     get: vi.fn(),
     post: vi.fn(),
+    isAxiosError: vi.fn((error) => {
+      return error && error.response !== undefined
+    })
   }
 }))
 
@@ -27,6 +30,7 @@ vi.mock('@mui/icons-material', () => ({
 const mockedAxios = axios as unknown as {
   get: ReturnType<typeof vi.fn>
   post: ReturnType<typeof vi.fn>
+  isAxiosError: ReturnType<typeof vi.fn>
 }
 
 // Helper function to render component with router and specific route
@@ -100,7 +104,14 @@ describe('JourneyDetails Component', () => {
 
   it('shows error message when API call fails', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    mockedAxios.get.mockRejectedValueOnce(new Error('Network error'))
+
+    // Create a proper axios error with response
+    const axiosError = new Error('Network error')
+    axiosError.response = { data: { error: 'Failed to load journey' }, status: 500 }
+
+    // Mock isAxiosError to return true for this error
+    mockedAxios.isAxiosError.mockReturnValueOnce(true)
+    mockedAxios.get.mockRejectedValueOnce(axiosError)
 
     renderWithRouter(<JourneyDetails />, '/journeys/test-id')
 
@@ -176,7 +187,13 @@ describe('JourneyDetails Component', () => {
   })
 
   it('has correct link in error state', async () => {
-    mockedAxios.get.mockRejectedValueOnce(new Error('Network error'))
+    // Create a proper axios error with response
+    const axiosError = new Error('Network error')
+    axiosError.response = { data: { error: 'Failed to load journey' }, status: 500 }
+
+    // Mock isAxiosError to return true for this error
+    mockedAxios.isAxiosError.mockReturnValueOnce(true)
+    mockedAxios.get.mockRejectedValueOnce(axiosError)
 
     renderWithRouter(<JourneyDetails />, '/journeys/test-id')
 
