@@ -51,8 +51,12 @@ const JourneyDetails = () => {
         const response = await axios.get(`/api/journeys/${id}`)
         setJourney(response.data)
       } catch (err) {
-        setError('Failed to load journey')
-        console.error('Error fetching journey:', err)
+        if (axios.isAxiosError(err)) {
+          setError(err.response?.data?.error || 'Failed to load journey.');
+        } else {
+          setError('An unknown error occurred while loading the journey.');
+        }
+        console.error('Error fetching journey:', err);
       } finally {
         setIsLoading(false)
       }
@@ -101,8 +105,12 @@ const JourneyDetails = () => {
       setStopNote('')
       setStopImageUrl('')
     } catch (err) {
-      setAddStopError('Failed to add stop. Please try again.')
-      console.error('Error adding stop:', err)
+      if (axios.isAxiosError(err)) {
+        setAddStopError(err.response?.data?.error || 'Failed to add stop. Please try again.');
+      } else {
+        setAddStopError('An unknown error occurred while adding the stop.');
+      }
+      console.error('Error adding stop:', err);
     } finally {
       setIsAddingStop(false)
     }
@@ -142,20 +150,25 @@ const JourneyDetails = () => {
       }
     } catch (err) {
       console.error('Full error object:', err)
-      if (err.response) {
-        console.error('Error response:', err.response.data)
-        console.error('Error status:', err.response.status)
-      }
-
       let errorMessage = 'Failed to process payment. Please try again.'
-      if (err.response?.status === 404) {
-        errorMessage = 'Payment endpoint not found. Please contact support.'
-      } else if (err.response?.status >= 500) {
-        errorMessage = 'Server error. Please try again later.'
-      } else if (err.message === 'No session ID received from server') {
-        errorMessage = 'Invalid payment session. Please try again.'
-      }
 
+      if (axios.isAxiosError(err)) {
+        console.error('Error response:', err.response?.data)
+        console.error('Error status:', err.response?.status)
+        if (err.response?.status === 404) {
+          errorMessage = 'Payment endpoint not found. Please contact support.'
+        } else if (err.response?.status >= 500) {
+          errorMessage = 'Server error. Please try again later.'
+        } else {
+          errorMessage = err.response?.data?.error || errorMessage
+        }
+      } else if (err instanceof Error) {
+        if (err.message === 'No session ID received from server') {
+          errorMessage = 'Invalid payment session. Please try again.'
+        } else {
+          errorMessage = err.message
+        }
+      }
       setPaymentError(errorMessage)
     } finally {
       setIsProcessingPayment(false)
@@ -171,7 +184,7 @@ const JourneyDetails = () => {
       await navigator.clipboard.writeText(shareableLink)
       setCopySuccess(true)
     } catch (err) {
-      console.error('Failed to copy link:', err)
+      console.error('Failed to copy link:', err instanceof Error ? err.message : err)
     }
   }
 
