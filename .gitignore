@@ -118,3 +118,6 @@ site
 
 # Mac files
 .DS_Store
+
+# Development notes (keep local, don't commit)
+CLAUDE.md
