@@ -153,14 +153,18 @@ const JourneyDetails = () => {
       let errorMessage = 'Failed to process payment. Please try again.'
 
       if (axios.isAxiosError(err)) {
-        console.error('Error response:', err.response?.data)
-        console.error('Error status:', err.response?.status)
-        if (err.response?.status === 404) {
-          errorMessage = 'Payment endpoint not found. Please contact support.'
-        } else if (err.response?.status >= 500) {
-          errorMessage = 'Server error. Please try again later.'
+        if (err.response) {
+          console.error('Error response:', err.response.data)
+          console.error('Error status:', err.response.status)
+          if (err.response.status === 404) {
+            errorMessage = 'Payment endpoint not found. Please contact support.'
+          } else if (err.response.status >= 500) {
+            errorMessage = 'Server error. Please try again later.'
+          } else {
+            errorMessage = err.response.data?.error || errorMessage
+          }
         } else {
-          errorMessage = err.response?.data?.error || errorMessage
+          errorMessage = 'Network error. Please check your connection.'
         }
       } else if (err instanceof Error) {
         if (err.message === 'No session ID received from server') {

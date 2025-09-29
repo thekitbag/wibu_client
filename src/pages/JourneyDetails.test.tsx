@@ -106,7 +106,7 @@ describe('JourneyDetails Component', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     // Create a proper axios error with response
-    const axiosError = new Error('Network error')
+    const axiosError: any = new Error('Network error')
     axiosError.response = { data: { error: 'Failed to load journey' }, status: 500 }
 
     // Mock isAxiosError to return true for this error
@@ -188,7 +188,7 @@ describe('JourneyDetails Component', () => {
 
   it('has correct link in error state', async () => {
     // Create a proper axios error with response
-    const axiosError = new Error('Network error')
+    const axiosError: any = new Error('Network error')
     axiosError.response = { data: { error: 'Failed to load journey' }, status: 500 }
 
     // Mock isAxiosError to return true for this error
