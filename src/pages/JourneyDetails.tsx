@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import axios from 'axios'
-import { Container, Box, Typography, Card, CardContent, CircularProgress, Alert, Button, TextField, CardMedia, IconButton, Snackbar } from '@mui/material'
+import { Container, Box, Typography, Card, CardContent, CircularProgress, Alert, Button, TextField, CardMedia, Snackbar } from '@mui/material'
 import { ContentCopy } from '@mui/icons-material'
 import { loadStripe } from '@stripe/stripe-js'
 
