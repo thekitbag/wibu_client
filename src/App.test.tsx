@@ -12,6 +12,14 @@ vi.mock('./pages/JourneyDetails', () => ({
   default: () => <div data-testid="journey-details-page">JourneyDetails Component</div>
 }))
 
+vi.mock('./pages/PaymentSuccess', () => ({
+  default: () => <div data-testid="payment-success-page">PaymentSuccess Component</div>
+}))
+
+vi.mock('./pages/RecipientReveal', () => ({
+  default: () => <div data-testid="recipient-reveal-page">RecipientReveal Component</div>
+}))
+
 // Helper function to render App with specific route
 const renderWithRouter = (initialEntry = '/') => {
   return render(
@@ -49,6 +57,20 @@ describe('App Component Routing', () => {
 
     expect(screen.getByTestId('journey-details-page')).toBeInTheDocument()
     expect(screen.getByText('JourneyDetails Component')).toBeInTheDocument()
+  })
+
+  it('renders PaymentSuccess component at /journeys/:id/success path', () => {
+    renderWithRouter('/journeys/test-journey-id/success')
+
+    expect(screen.getByTestId('payment-success-page')).toBeInTheDocument()
+    expect(screen.getByText('PaymentSuccess Component')).toBeInTheDocument()
+  })
+
+  it('renders RecipientReveal component at /reveal/:shareableToken path', () => {
+    renderWithRouter('/reveal/abc123token')
+
+    expect(screen.getByTestId('recipient-reveal-page')).toBeInTheDocument()
+    expect(screen.getByText('RecipientReveal Component')).toBeInTheDocument()
   })
 
   it('renders JourneyDetails component with different journey IDs', () => {

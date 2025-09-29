@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import axios from 'axios'
-import { Container, Box, Typography, Card, CardContent, CircularProgress, Alert, Button, TextField, CardMedia } from '@mui/material'
+import { Container, Box, Typography, Card, CardContent, CircularProgress, Alert, Button, TextField, CardMedia, IconButton, Snackbar } from '@mui/material'
+import { ContentCopy } from '@mui/icons-material'
+import { loadStripe } from '@stripe/stripe-js'
 
 interface Stop {
   id: string
@@ -15,6 +17,8 @@ interface Journey {
   id: string
   title: string
   stops?: Stop[]
+  paid?: boolean
+  shareableToken?: string
 }
 
 const JourneyDetails = () => {
@@ -29,6 +33,11 @@ const JourneyDetails = () => {
   const [stopImageUrl, setStopImageUrl] = useState('')
   const [isAddingStop, setIsAddingStop] = useState(false)
   const [addStopError, setAddStopError] = useState('')
+
+  // Payment state
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false)
+  const [paymentError, setPaymentError] = useState('')
+  const [copySuccess, setCopySuccess] = useState(false)
 
   useEffect(() => {
     const fetchJourney = async () => {
@@ -96,6 +105,73 @@ const JourneyDetails = () => {
       console.error('Error adding stop:', err)
     } finally {
       setIsAddingStop(false)
+    }
+  }
+
+  const handleProceedToPayment = async () => {
+    if (!id) {
+      setPaymentError('No journey ID available')
+      return
+    }
+
+    setIsProcessingPayment(true)
+    setPaymentError('')
+
+    try {
+      const response = await axios.post(`/api/journeys/${id}/create-checkout-session`)
+
+      // Handle different possible property names for the session ID
+      const sessionId = response.data.sessionId ||
+                       response.data.session_id ||
+                       response.data.id ||
+                       response.data.checkout_session_id ||
+                       response.data.stripeSessionId
+
+      if (!sessionId) {
+        throw new Error(`No session ID found in server response`)
+      }
+
+      const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
+      if (!stripe) {
+        throw new Error('Failed to load Stripe')
+      }
+
+      const { error } = await stripe.redirectToCheckout({ sessionId })
+      if (error) {
+        throw new Error(error.message)
+      }
+    } catch (err) {
+      console.error('Full error object:', err)
+      if (err.response) {
+        console.error('Error response:', err.response.data)
+        console.error('Error status:', err.response.status)
+      }
+
+      let errorMessage = 'Failed to process payment. Please try again.'
+      if (err.response?.status === 404) {
+        errorMessage = 'Payment endpoint not found. Please contact support.'
+      } else if (err.response?.status >= 500) {
+        errorMessage = 'Server error. Please try again later.'
+      } else if (err.message === 'No session ID received from server') {
+        errorMessage = 'Invalid payment session. Please try again.'
+      }
+
+      setPaymentError(errorMessage)
+    } finally {
+      setIsProcessingPayment(false)
+    }
+  }
+
+  const handleCopyLink = async () => {
+    if (!journey?.shareableToken) return
+
+    const shareableLink = `${window.location.origin}/reveal/${journey.shareableToken}`
+
+    try {
+      await navigator.clipboard.writeText(shareableLink)
+      setCopySuccess(true)
+    } catch (err) {
+      console.error('Failed to copy link:', err)
     }
   }
 
@@ -298,140 +374,301 @@ const JourneyDetails = () => {
             )}
           </Box>
 
-          {/* Add Stop Form */}
+          {/* Right Sidebar - Conditional based on payment status */}
           <Box sx={{ flex: 1, minWidth: { md: 350 } }}>
-            <Card
-              sx={{
-                p: 3,
-                boxShadow: 3,
-                borderRadius: 2,
-                position: 'sticky',
-                top: 24
-              }}
-            >
-              <Typography
-                variant="h5"
+            {journey?.paid ? (
+              /* Paid Journey - Show Shareable Link */
+              <Card
                 sx={{
-                  fontWeight: 600,
-                  mb: 3,
-                  color: 'primary.main'
+                  p: 3,
+                  boxShadow: 3,
+                  borderRadius: 2,
+                  position: 'sticky',
+                  top: 24
                 }}
               >
-                Add New Stop
-              </Typography>
-
-              <Box
-                component="form"
-                onSubmit={handleAddStop}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 3
-                }}
-              >
-                <TextField
-                  fullWidth
-                  label="Stop Title"
-                  placeholder="Enter stop title"
-                  value={stopTitle}
-                  onChange={(e) => setStopTitle(e.target.value)}
-                  disabled={isAddingStop}
-                  required
-                  variant="outlined"
+                <Typography
+                  variant="h5"
                   sx={{
-                    '& .MuiInputLabel-root': {
-                      fontSize: '1rem',
-                      fontWeight: 500
-                    }
-                  }}
-                />
-
-                <TextField
-                  fullWidth
-                  label="Image URL"
-                  placeholder="https://example.com/image.jpg"
-                  value={stopImageUrl}
-                  onChange={(e) => setStopImageUrl(e.target.value)}
-                  disabled={isAddingStop}
-                  required
-                  variant="outlined"
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      fontSize: '1rem',
-                      fontWeight: 500
-                    }
-                  }}
-                />
-
-                <TextField
-                  fullWidth
-                  label="Note (Optional)"
-                  placeholder="Add a note about this stop"
-                  value={stopNote}
-                  onChange={(e) => setStopNote(e.target.value)}
-                  disabled={isAddingStop}
-                  multiline
-                  rows={3}
-                  variant="outlined"
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      fontSize: '1rem',
-                      fontWeight: 500
-                    }
-                  }}
-                />
-
-                {addStopError && (
-                  <Alert
-                    severity="error"
-                    sx={{
-                      fontSize: '0.95rem',
-                      '& .MuiAlert-message': {
-                        fontWeight: 500
-                      }
-                    }}
-                  >
-                    {addStopError}
-                  </Alert>
-                )}
-
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={isAddingStop}
-                  size="large"
-                  startIcon={isAddingStop ? <CircularProgress size={20} /> : null}
-                  sx={{
-                    py: 1.5,
-                    fontSize: '1.1rem',
                     fontWeight: 600,
-                    textTransform: 'none'
+                    mb: 3,
+                    color: 'success.main'
                   }}
                 >
-                  {isAddingStop ? 'Adding Stop...' : 'Add Stop'}
-                </Button>
-              </Box>
-            </Card>
+                  🎉 Journey Complete!
+                </Typography>
 
-            <Box sx={{ mt: 3, textAlign: 'center' }}>
-              <Button
-                component={Link}
-                to="/create"
-                variant="outlined"
-                sx={{
-                  px: 3,
-                  py: 1,
-                  fontSize: '1rem',
-                  fontWeight: 500,
-                  textTransform: 'none'
-                }}
-              >
-                Create Another Journey
-              </Button>
-            </Box>
+                <Typography
+                  variant="body1"
+                  sx={{ mb: 3 }}
+                >
+                  Your journey is ready to share! Send this link to your recipient:
+                </Typography>
+
+                {journey.shareableToken && (
+                  <Box sx={{ mb: 3 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mb: 1 }}
+                    >
+                      Shareable Link:
+                    </Typography>
+                    <Box
+                      sx={{
+                        p: 2,
+                        backgroundColor: 'grey.100',
+                        borderRadius: 1,
+                        border: '1px solid',
+                        borderColor: 'grey.300',
+                        wordBreak: 'break-all',
+                        fontSize: '0.9rem'
+                      }}
+                    >
+                      {window.location.origin}/reveal/{journey.shareableToken}
+                    </Box>
+                    <Button
+                      onClick={handleCopyLink}
+                      variant="outlined"
+                      startIcon={<ContentCopy />}
+                      sx={{
+                        mt: 2,
+                        textTransform: 'none'
+                      }}
+                      fullWidth
+                    >
+                      {copySuccess ? 'Copied!' : 'Copy Link'}
+                    </Button>
+                  </Box>
+                )}
+
+                <Box sx={{ textAlign: 'center' }}>
+                  <Button
+                    component={Link}
+                    to="/create"
+                    variant="contained"
+                    sx={{
+                      px: 3,
+                      py: 1,
+                      fontSize: '1rem',
+                      fontWeight: 500,
+                      textTransform: 'none'
+                    }}
+                  >
+                    Create Another Journey
+                  </Button>
+                </Box>
+              </Card>
+            ) : (
+              /* Unpaid Journey - Show Add Stop Form and Payment */
+              <>
+                <Card
+                  sx={{
+                    p: 3,
+                    boxShadow: 3,
+                    borderRadius: 2,
+                    position: 'sticky',
+                    top: 24
+                  }}
+                >
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      fontWeight: 600,
+                      mb: 3,
+                      color: 'primary.main'
+                    }}
+                  >
+                    Add New Stop
+                  </Typography>
+
+                  <Box
+                    component="form"
+                    onSubmit={handleAddStop}
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 3
+                    }}
+                  >
+                    <TextField
+                      fullWidth
+                      label="Stop Title"
+                      placeholder="Enter stop title"
+                      value={stopTitle}
+                      onChange={(e) => setStopTitle(e.target.value)}
+                      disabled={isAddingStop}
+                      required
+                      variant="outlined"
+                      sx={{
+                        '& .MuiInputLabel-root': {
+                          fontSize: '1rem',
+                          fontWeight: 500
+                        }
+                      }}
+                    />
+
+                    <TextField
+                      fullWidth
+                      label="Image URL"
+                      placeholder="https://example.com/image.jpg"
+                      value={stopImageUrl}
+                      onChange={(e) => setStopImageUrl(e.target.value)}
+                      disabled={isAddingStop}
+                      required
+                      variant="outlined"
+                      sx={{
+                        '& .MuiInputLabel-root': {
+                          fontSize: '1rem',
+                          fontWeight: 500
+                        }
+                      }}
+                    />
+
+                    <TextField
+                      fullWidth
+                      label="Note (Optional)"
+                      placeholder="Add a note about this stop"
+                      value={stopNote}
+                      onChange={(e) => setStopNote(e.target.value)}
+                      disabled={isAddingStop}
+                      multiline
+                      rows={3}
+                      variant="outlined"
+                      sx={{
+                        '& .MuiInputLabel-root': {
+                          fontSize: '1rem',
+                          fontWeight: 500
+                        }
+                      }}
+                    />
+
+                    {addStopError && (
+                      <Alert
+                        severity="error"
+                        sx={{
+                          fontSize: '0.95rem',
+                          '& .MuiAlert-message': {
+                            fontWeight: 500
+                          }
+                        }}
+                      >
+                        {addStopError}
+                      </Alert>
+                    )}
+
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      disabled={isAddingStop}
+                      size="large"
+                      startIcon={isAddingStop ? <CircularProgress size={20} /> : null}
+                      sx={{
+                        py: 1.5,
+                        fontSize: '1.1rem',
+                        fontWeight: 600,
+                        textTransform: 'none'
+                      }}
+                    >
+                      {isAddingStop ? 'Adding Stop...' : 'Add Stop'}
+                    </Button>
+                  </Box>
+                </Card>
+
+                {/* Payment Section */}
+                <Card
+                  sx={{
+                    p: 3,
+                    boxShadow: 3,
+                    borderRadius: 2,
+                    mt: 3,
+                    backgroundColor: 'success.50',
+                    border: '2px solid',
+                    borderColor: 'success.200'
+                  }}
+                >
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      fontWeight: 600,
+                      mb: 2,
+                      color: 'success.main'
+                    }}
+                  >
+                    Ready to Share?
+                  </Typography>
+
+                  <Typography
+                    variant="body1"
+                    sx={{ mb: 3 }}
+                  >
+                    Complete your payment to get a shareable link for your recipient.
+                  </Typography>
+
+                  {paymentError && (
+                    <Alert
+                      severity="error"
+                      sx={{
+                        mb: 3,
+                        fontSize: '0.95rem',
+                        '& .MuiAlert-message': {
+                          fontWeight: 500
+                        }
+                      }}
+                    >
+                      {paymentError}
+                    </Alert>
+                  )}
+
+                  <Button
+                    onClick={handleProceedToPayment}
+                    variant="contained"
+                    color="success"
+                    disabled={isProcessingPayment}
+                    size="large"
+                    startIcon={isProcessingPayment ? <CircularProgress size={20} /> : null}
+                    fullWidth
+                    sx={{
+                      py: 1.5,
+                      fontSize: '1.1rem',
+                      fontWeight: 600,
+                      textTransform: 'none'
+                    }}
+                  >
+                    {isProcessingPayment ? 'Processing...' : 'Proceed to Payment'}
+                  </Button>
+                </Card>
+
+                <Box sx={{ mt: 3, textAlign: 'center' }}>
+                  <Button
+                    component={Link}
+                    to="/create"
+                    variant="outlined"
+                    sx={{
+                      px: 3,
+                      py: 1,
+                      fontSize: '1rem',
+                      fontWeight: 500,
+                      textTransform: 'none'
+                    }}
+                  >
+                    Create Another Journey
+                  </Button>
+                </Box>
+              </>
+            )}
           </Box>
         </Box>
       </Box>
+
+      {/* Copy Success Snackbar */}
+      <Snackbar
+        open={copySuccess}
+        autoHideDuration={3000}
+        onClose={() => setCopySuccess(false)}
+        message="Link copied to clipboard!"
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
     </Container>
   )
 }

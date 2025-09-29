@@ -8,11 +8,25 @@ import JourneyDetails from './JourneyDetails'
 vi.mock('axios', () => ({
   default: {
     get: vi.fn(),
+    post: vi.fn(),
   }
+}))
+
+// Mock @stripe/stripe-js
+vi.mock('@stripe/stripe-js', () => ({
+  loadStripe: vi.fn(() => Promise.resolve({
+    redirectToCheckout: vi.fn()
+  }))
+}))
+
+// Mock @mui/icons-material
+vi.mock('@mui/icons-material', () => ({
+  ContentCopy: () => null
 }))
 
 const mockedAxios = axios as unknown as {
   get: ReturnType<typeof vi.fn>
+  post: ReturnType<typeof vi.fn>
 }
 
 // Helper function to render component with router and specific route
@@ -49,7 +63,8 @@ describe('JourneyDetails Component', () => {
     const mockJourney = {
       id: 'test-journey-id',
       title: 'My Amazing Journey',
-      stops: []
+      stops: [],
+      paid: false
     }
 
     mockedAxios.get.mockResolvedValueOnce({ data: mockJourney })
@@ -70,7 +85,8 @@ describe('JourneyDetails Component', () => {
     const mockJourney = {
       id: 'specific-journey-id',
       title: 'Test Journey',
-      stops: []
+      stops: [],
+      paid: false
     }
 
     mockedAxios.get.mockResolvedValueOnce({ data: mockJourney })
@@ -117,7 +133,8 @@ describe('JourneyDetails Component', () => {
       const mockJourney = {
         id: journeyId,
         title: `Journey ${journeyId}`,
-        stops: []
+        stops: [],
+        paid: false
       }
 
       mockedAxios.get.mockResolvedValueOnce({ data: mockJourney })
@@ -142,7 +159,8 @@ describe('JourneyDetails Component', () => {
     const mockJourney = {
       id: 'test-journey-id',
       title: 'Test Journey',
-      stops: []
+      stops: [],
+      paid: false
     }
 
     mockedAxios.get.mockResolvedValueOnce({ data: mockJourney })
@@ -188,7 +206,8 @@ describe('JourneyDetails Component', () => {
     const mockJourney = {
       id: 'test-journey-id',
       title: 'Journey with émojis 🚀 & special chars!',
-      stops: []
+      stops: [],
+      paid: false
     }
 
     mockedAxios.get.mockResolvedValueOnce({ data: mockJourney })
@@ -205,6 +224,7 @@ describe('JourneyDetails Component', () => {
       const mockJourney = {
         id: 'test-journey-id',
         title: 'Test Journey',
+        paid: false,
         stops: [
           {
             id: 'stop-1',
@@ -239,7 +259,8 @@ describe('JourneyDetails Component', () => {
       const mockJourney = {
         id: 'test-journey-id',
         title: 'Test Journey',
-        stops: []
+        stops: [],
+        paid: false
       }
 
       mockedAxios.get.mockResolvedValueOnce({ data: mockJourney })
@@ -258,7 +279,8 @@ describe('JourneyDetails Component', () => {
       const mockJourney = {
         id: 'test-journey-id',
         title: 'Test Journey',
-        stops: []
+        stops: [],
+        paid: false
       }
 
       mockedAxios.get.mockResolvedValueOnce({ data: mockJourney })

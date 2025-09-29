@@ -2,6 +2,8 @@ import { Routes, Route, Link } from 'react-router-dom'
 import { CssBaseline, Container, Box, Typography, Button } from '@mui/material'
 import CreateJourney from './pages/CreateJourney'
 import JourneyDetails from './pages/JourneyDetails'
+import PaymentSuccess from './pages/PaymentSuccess'
+import RecipientReveal from './pages/RecipientReveal'
 
 function App() {
   return (
@@ -63,6 +65,8 @@ function App() {
         } />
         <Route path="/create" element={<CreateJourney />} />
         <Route path="/journeys/:id" element={<JourneyDetails />} />
+        <Route path="/journeys/:id/success" element={<PaymentSuccess />} />
+        <Route path="/reveal/:shareableToken" element={<RecipientReveal />} />
       </Routes>
     </div>
   )
