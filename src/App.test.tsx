@@ -37,7 +37,7 @@ describe('App Component Routing', () => {
   it('renders home page at root path', () => {
     renderWithRouter('/')
 
-    expect(screen.getByText('What I Bought You')).toBeInTheDocument()
+    expect(screen.getByText('The gift is the journey.')).toBeInTheDocument()
     expect(screen.getByText('Create New Journey')).toBeInTheDocument()
 
     // Check that the button is actually a link
@@ -94,7 +94,7 @@ describe('App Component Routing', () => {
   it('home page button has correct styling and structure', () => {
     renderWithRouter('/')
 
-    const homeContainer = screen.getByText('What I Bought You').closest('.MuiBox-root')
+    const homeContainer = screen.getByText('The gift is the journey.').closest('.MuiBox-root')
     expect(homeContainer).toHaveStyle({
       display: 'flex'
     })
@@ -106,7 +106,7 @@ describe('App Component Routing', () => {
   it('handles navigation to different routes correctly', () => {
     // Test multiple route navigations
     const routes = [
-      { path: '/', expectedText: 'What I Bought You' },
+      { path: '/', expectedText: 'The gift is the journey.' },
       { path: '/create', expectedTestId: 'create-journey-page' },
       { path: '/journeys/abc123', expectedTestId: 'journey-details-page' }
     ]
@@ -131,7 +131,7 @@ describe('App Component Routing', () => {
   it('App component has correct CSS class', () => {
     renderWithRouter('/')
 
-    const appDiv = screen.getByText('What I Bought You').closest('.App')
+    const appDiv = screen.getByText('The gift is the journey.').closest('.MuiBox-root')
     expect(appDiv).toBeInTheDocument()
   })
 
@@ -166,7 +166,7 @@ describe('App Component Routing', () => {
       renderWithRouter('/')
 
       const heading = screen.getByRole('heading', { level: 1 })
-      expect(heading).toHaveTextContent('What I Bought You')
+      expect(heading).toHaveTextContent('The gift is the journey.')
     })
 
     it('has accessible button for navigation', () => {

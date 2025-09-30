@@ -33,27 +33,40 @@ const CreateJourney = () => {
   }
 
   return (
-    <Container maxWidth="sm">
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          gap: 4,
-          px: 2
-        }}
-      >
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #121212 100%)',
+        position: 'relative',
+        px: 2
+      }}
+    >
+      <Container maxWidth="sm">
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 4
+          }}
+        >
         <Box sx={{ textAlign: 'center', mb: 2 }}>
           <Typography
             variant="h3"
             component="h1"
             sx={{
-              fontWeight: 600,
+              fontWeight: 700,
               fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
-              color: 'primary.main',
-              mb: 2
+              background: 'linear-gradient(135deg, #ab47bc 0%, #ffa000 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              mb: 2,
+              textAlign: 'center'
             }}
           >
             Create New Journey
@@ -120,21 +133,28 @@ const CreateJourney = () => {
           <Button
             type="submit"
             variant="contained"
+            color="secondary"
             disabled={isLoading}
             size="large"
-            startIcon={isLoading ? <CircularProgress size={20} /> : null}
+            startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
             sx={{
               py: 1.5,
               fontSize: '1.1rem',
               fontWeight: 600,
-              textTransform: 'none'
+              textTransform: 'none',
+              borderRadius: 3,
+              boxShadow: '0 8px 32px rgba(255, 160, 0, 0.3)',
+              '&:hover': {
+                boxShadow: '0 12px 40px rgba(255, 160, 0, 0.4)',
+              }
             }}
           >
             {isLoading ? 'Creating...' : 'Create Journey'}
           </Button>
         </Box>
-      </Box>
-    </Container>
+        </Box>
+      </Container>
+    </Box>
   )
 }
 
