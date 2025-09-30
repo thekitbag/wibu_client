@@ -15,7 +15,16 @@ This is the frontend for the "What I Bought You" application. It is built with R
     npm install
     ```
 
-2.  **Run the Development Server:**
+2.  **Set Up Environment Variables:**
+
+    Create a `.env` file in the root of the `wibu_client` directory. This is required for Stripe integration. Add the following variable:
+
+    ```
+    # Your Stripe Publishable Key for testing
+    VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
+    ```
+
+3.  **Run the Development Server:**
 
     ```bash
     npm run dev
