@@ -44,6 +44,8 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
   const [error, setError] = useState('')
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
   const [paymentError, setPaymentError] = useState('')
+  const [currentView, setCurrentView] = useState<'welcome' | 'journey' | 'summary' | 'payment'>('welcome')
+  const [fadeKey, setFadeKey] = useState(0)
 
   useEffect(() => {
     const fetchJourney = async () => {
@@ -136,17 +138,406 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
     }
   }
 
+  const handleBeginReveal = () => {
+    setCurrentView('journey')
+    setCurrentStopIndex(0)
+    setFadeKey(prev => prev + 1)
+  }
+
   const handleNext = () => {
     if (journey?.stops && currentStopIndex < journey.stops.length - 1) {
       setCurrentStopIndex(currentStopIndex + 1)
+      setFadeKey(prev => prev + 1)
     } else {
-      setCurrentStopIndex(journey?.stops?.length || 0) // Show final screen
+      setCurrentView('summary')
+      setFadeKey(prev => prev + 1)
     }
+  }
+
+  const handleSummaryComplete = () => {
+    if (mode === 'preview') {
+      setCurrentView('payment')
+    } else {
+      // For final mode, we're done
+      setCurrentView('summary')
+    }
+    setFadeKey(prev => prev + 1)
   }
 
   const sortedStops = journey?.stops?.sort((a, b) => a.order - b.order) || []
   const currentStop = sortedStops[currentStopIndex]
-  const isLastStop = currentStopIndex >= sortedStops.length
+
+  // Helper function to render different views
+  const renderContent = () => {
+    if (currentView === 'welcome') {
+      return (
+        <Fade in={true} timeout={800} key={`welcome-${fadeKey}`}>
+          <Card
+            sx={{
+              background: 'rgba(30, 30, 30, 0.95)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(171, 71, 188, 0.3)',
+              borderRadius: 4,
+              maxWidth: '600px',
+              mx: 'auto',
+              textAlign: 'center',
+              p: 6
+            }}
+          >
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 700,
+                mb: 3,
+                background: 'linear-gradient(135deg, #ab47bc 0%, #ffa000 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}
+            >
+              You've received a Journey!
+            </Typography>
+
+            <Typography
+              variant="h6"
+              color="text.secondary"
+              sx={{ mb: 4, lineHeight: 1.6 }}
+            >
+              Someone special has created a thoughtful experience just for you. Are you ready to begin?
+            </Typography>
+
+            <Button
+              onClick={handleBeginReveal}
+              variant="contained"
+              color="secondary"
+              size="large"
+              sx={{
+                px: 6,
+                py: 2,
+                fontSize: '1.2rem',
+                fontWeight: 600,
+                textTransform: 'none',
+                borderRadius: 3,
+                boxShadow: '0 8px 32px rgba(255, 160, 0, 0.3)',
+                '&:hover': {
+                  boxShadow: '0 12px 40px rgba(255, 160, 0, 0.4)',
+                }
+              }}
+            >
+              Begin the Reveal
+            </Button>
+          </Card>
+        </Fade>
+      )
+    }
+
+    if (currentView === 'journey' && currentStop) {
+      return (
+        <Fade in={true} timeout={800} key={`stop-${currentStopIndex}-${fadeKey}`}>
+          <Card
+            sx={{
+              background: 'rgba(30, 30, 30, 0.95)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(171, 71, 188, 0.3)',
+              borderRadius: 4,
+              overflow: 'hidden',
+              maxWidth: '800px',
+              mx: 'auto'
+            }}
+          >
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: 'secondary.main',
+                  fontWeight: 600,
+                  mb: 2,
+                  opacity: 0.8
+                }}
+              >
+                Stop {currentStopIndex + 1} of {sortedStops.length}
+              </Typography>
+
+              <Typography
+                variant="h3"
+                sx={{
+                  fontWeight: 700,
+                  mb: 3,
+                  background: 'linear-gradient(135deg, #ab47bc 0%, #ffa000 100%)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}
+              >
+                {currentStop.title}
+              </Typography>
+
+              {currentStop.note && (
+                <Typography
+                  variant="h6"
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 4,
+                    lineHeight: 1.6,
+                    maxWidth: '600px',
+                    mx: 'auto'
+                  }}
+                >
+                  {currentStop.note}
+                </Typography>
+              )}
+
+              <Box sx={{ mb: 4 }}>
+                <CardMedia
+                  component="img"
+                  sx={{
+                    maxHeight: 300,
+                    objectFit: 'contain',
+                    borderRadius: 2,
+                    mx: 'auto',
+                    display: 'block'
+                  }}
+                  image={currentStop.image_url}
+                  alt={currentStop.title}
+                />
+              </Box>
+
+              <Button
+                onClick={handleNext}
+                variant="contained"
+                color="secondary"
+                size="large"
+                sx={{
+                  px: 6,
+                  py: 2,
+                  fontSize: '1.2rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  borderRadius: 3,
+                  boxShadow: '0 8px 32px rgba(255, 160, 0, 0.3)',
+                  '&:hover': {
+                    boxShadow: '0 12px 40px rgba(255, 160, 0, 0.4)',
+                  }
+                }}
+              >
+                {currentStopIndex < sortedStops.length - 1 ? 'Next' : 'Finish'}
+              </Button>
+            </Box>
+          </Card>
+        </Fade>
+      )
+    }
+
+    if (currentView === 'summary') {
+      return (
+        <Fade in={true} timeout={800} key={`summary-${fadeKey}`}>
+          <Card
+            sx={{
+              background: 'rgba(30, 30, 30, 0.95)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(171, 71, 188, 0.3)',
+              borderRadius: 4,
+              maxWidth: '800px',
+              mx: 'auto',
+              p: 4
+            }}
+          >
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                mb: 4,
+                background: 'linear-gradient(135deg, #ab47bc 0%, #ffa000 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                textAlign: 'center'
+              }}
+            >
+              {mode === 'final' ? 'Enjoy your gift!' : 'Journey Complete!'}
+            </Typography>
+
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ mb: 4, textAlign: 'center', fontSize: '1.1rem' }}
+            >
+              Here's a summary of your journey:
+            </Typography>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 4 }}>
+              {sortedStops.map((stop, index) => (
+                <Box
+                  key={stop.id}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    p: 2,
+                    borderRadius: 2,
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(171, 71, 188, 0.1)'
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 60,
+                      height: 60,
+                      borderRadius: 2,
+                      backgroundImage: `url(${stop.image_url})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      mr: 3
+                    }}
+                  />
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+                      {stop.title}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ fontSize: '0.9rem' }}
+                    >
+                      Stop {index + 1}
+                    </Typography>
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+
+            {mode === 'preview' ? (
+              <Box sx={{ textAlign: 'center' }}>
+                <Button
+                  onClick={handleSummaryComplete}
+                  variant="contained"
+                  color="secondary"
+                  size="large"
+                  sx={{
+                    px: 6,
+                    py: 2,
+                    fontSize: '1.2rem',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    borderRadius: 3,
+                    boxShadow: '0 8px 32px rgba(255, 160, 0, 0.3)',
+                    '&:hover': {
+                      boxShadow: '0 12px 40px rgba(255, 160, 0, 0.4)',
+                    }
+                  }}
+                >
+                  Continue to Payment
+                </Button>
+              </Box>
+            ) : (
+              <Typography
+                variant="body1"
+                color="text.secondary"
+                sx={{ textAlign: 'center', fontSize: '1.1rem', fontStyle: 'italic' }}
+              >
+                Thank you for experiencing this thoughtful journey.
+              </Typography>
+            )}
+          </Card>
+        </Fade>
+      )
+    }
+
+    if (currentView === 'payment' && mode === 'preview') {
+      return (
+        <Fade in={true} timeout={800} key={`payment-${fadeKey}`}>
+          <Card
+            sx={{
+              background: 'rgba(30, 30, 30, 0.95)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(171, 71, 188, 0.3)',
+              borderRadius: 4,
+              maxWidth: '600px',
+              mx: 'auto',
+              textAlign: 'center',
+              p: 6
+            }}
+          >
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                mb: 3,
+                background: 'linear-gradient(135deg, #ab47bc 0%, #ffa000 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}
+            >
+              Ready to share this experience?
+            </Typography>
+
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ mb: 4, fontSize: '1.1rem' }}
+            >
+              Complete your payment to send this journey to your recipient.
+            </Typography>
+
+            {paymentError && (
+              <Alert
+                severity="error"
+                sx={{
+                  mb: 3,
+                  fontSize: '0.95rem',
+                  '& .MuiAlert-message': {
+                    fontWeight: 500
+                  }
+                }}
+              >
+                {paymentError}
+              </Alert>
+            )}
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Button
+                onClick={handleProceedToPayment}
+                variant="contained"
+                color="secondary"
+                size="large"
+                disabled={isProcessingPayment}
+                startIcon={isProcessingPayment ? <CircularProgress size={20} color="inherit" /> : null}
+                sx={{
+                  py: 2,
+                  fontSize: '1.2rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  borderRadius: 3,
+                  boxShadow: '0 8px 32px rgba(255, 160, 0, 0.3)',
+                  '&:hover': {
+                    boxShadow: '0 12px 40px rgba(255, 160, 0, 0.4)',
+                  }
+                }}
+              >
+                {isProcessingPayment ? 'Processing...' : 'Proceed to Payment'}
+              </Button>
+
+              <Button
+                onClick={() => navigate(`/journeys/${id}`)}
+                variant="outlined"
+                size="large"
+                sx={{
+                  py: 1.5,
+                  fontSize: '1rem',
+                  fontWeight: 500,
+                  textTransform: 'none'
+                }}
+              >
+                Back to Edit Journey
+              </Button>
+            </Box>
+          </Card>
+        </Fade>
+      )
+    }
+
+    return null
+  }
 
   if (isLoading) {
     return (
@@ -223,8 +614,8 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
         overflow: 'hidden'
       }}
     >
-      {/* Background image if current stop exists */}
-      {currentStop && (
+      {/* Background image if current stop exists and we're in journey view */}
+      {currentView === 'journey' && currentStop && (
         <Box
           sx={{
             position: 'absolute',
@@ -254,220 +645,7 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
         }}
       >
         <Container maxWidth="md">
-          {!isLastStop && currentStop ? (
-            /* Current Stop Display */
-            <Fade in={true} timeout={800}>
-              <Card
-                sx={{
-                  background: 'rgba(30, 30, 30, 0.95)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(171, 71, 188, 0.3)',
-                  borderRadius: 4,
-                  overflow: 'hidden',
-                  maxWidth: '800px',
-                  mx: 'auto'
-                }}
-              >
-                <Box sx={{ p: 4, textAlign: 'center' }}>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      color: 'secondary.main',
-                      fontWeight: 600,
-                      mb: 2,
-                      opacity: 0.8
-                    }}
-                  >
-                    Stop {currentStopIndex + 1} of {sortedStops.length}
-                  </Typography>
-
-                  <Typography
-                    variant="h3"
-                    sx={{
-                      fontWeight: 700,
-                      mb: 3,
-                      background: 'linear-gradient(135deg, #ab47bc 0%, #ffa000 100%)',
-                      backgroundClip: 'text',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent'
-                    }}
-                  >
-                    {currentStop.title}
-                  </Typography>
-
-                  {currentStop.note && (
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        color: 'text.secondary',
-                        mb: 4,
-                        lineHeight: 1.6,
-                        maxWidth: '600px',
-                        mx: 'auto'
-                      }}
-                    >
-                      {currentStop.note}
-                    </Typography>
-                  )}
-
-                  <Box sx={{ mb: 4 }}>
-                    <CardMedia
-                      component="img"
-                      sx={{
-                        maxHeight: 300,
-                        objectFit: 'contain',
-                        borderRadius: 2,
-                        mx: 'auto',
-                        display: 'block'
-                      }}
-                      image={currentStop.image_url}
-                      alt={currentStop.title}
-                    />
-                  </Box>
-
-                  <Button
-                    onClick={handleNext}
-                    variant="contained"
-                    color="secondary"
-                    size="large"
-                    sx={{
-                      px: 6,
-                      py: 2,
-                      fontSize: '1.2rem',
-                      fontWeight: 600,
-                      textTransform: 'none',
-                      borderRadius: 3,
-                      boxShadow: '0 8px 32px rgba(255, 160, 0, 0.3)',
-                      '&:hover': {
-                        boxShadow: '0 12px 40px rgba(255, 160, 0, 0.4)',
-                      }
-                    }}
-                  >
-                    {currentStopIndex < sortedStops.length - 1 ? 'Next' : 'Finish'}
-                  </Button>
-                </Box>
-              </Card>
-            </Fade>
-          ) : (
-            /* Final Screen */
-            <Fade in={true} timeout={800}>
-              <Card
-                sx={{
-                  background: 'rgba(30, 30, 30, 0.95)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(171, 71, 188, 0.3)',
-                  borderRadius: 4,
-                  maxWidth: '600px',
-                  mx: 'auto',
-                  textAlign: 'center',
-                  p: 6
-                }}
-              >
-                {mode === 'preview' ? (
-                  <>
-                    <Typography
-                      variant="h4"
-                      sx={{
-                        fontWeight: 700,
-                        mb: 3,
-                        background: 'linear-gradient(135deg, #ab47bc 0%, #ffa000 100%)',
-                        backgroundClip: 'text',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent'
-                      }}
-                    >
-                      This is the end of your journey preview.
-                    </Typography>
-
-                    <Typography
-                      variant="body1"
-                      color="text.secondary"
-                      sx={{ mb: 4, fontSize: '1.1rem' }}
-                    >
-                      Ready to share this experience with your recipient?
-                    </Typography>
-
-                    {paymentError && (
-                      <Alert
-                        severity="error"
-                        sx={{
-                          mb: 3,
-                          fontSize: '0.95rem',
-                          '& .MuiAlert-message': {
-                            fontWeight: 500
-                          }
-                        }}
-                      >
-                        {paymentError}
-                      </Alert>
-                    )}
-
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <Button
-                        onClick={handleProceedToPayment}
-                        variant="contained"
-                        color="secondary"
-                        size="large"
-                        disabled={isProcessingPayment}
-                        startIcon={isProcessingPayment ? <CircularProgress size={20} color="inherit" /> : null}
-                        sx={{
-                          py: 2,
-                          fontSize: '1.2rem',
-                          fontWeight: 600,
-                          textTransform: 'none',
-                          borderRadius: 3,
-                          boxShadow: '0 8px 32px rgba(255, 160, 0, 0.3)',
-                          '&:hover': {
-                            boxShadow: '0 12px 40px rgba(255, 160, 0, 0.4)',
-                          }
-                        }}
-                      >
-                        {isProcessingPayment ? 'Processing...' : 'Proceed to Payment'}
-                      </Button>
-
-                      <Button
-                        onClick={() => navigate(`/journeys/${id}`)}
-                        variant="outlined"
-                        size="large"
-                        sx={{
-                          py: 1.5,
-                          fontSize: '1rem',
-                          fontWeight: 500,
-                          textTransform: 'none'
-                        }}
-                      >
-                        Back to Edit Journey
-                      </Button>
-                    </Box>
-                  </>
-                ) : (
-                  <>
-                    <Typography
-                      variant="h4"
-                      sx={{
-                        fontWeight: 700,
-                        mb: 3,
-                        background: 'linear-gradient(135deg, #ab47bc 0%, #ffa000 100%)',
-                        backgroundClip: 'text',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent'
-                      }}
-                    >
-                      We hope you enjoyed your gift!
-                    </Typography>
-
-                    <Typography
-                      variant="body1"
-                      color="text.secondary"
-                      sx={{ fontSize: '1.1rem' }}
-                    >
-                      Thank you for experiencing this thoughtful journey.
-                    </Typography>
-                  </>
-                )}
-              </Card>
-            </Fade>
-          )}
+          {renderContent()}
         </Container>
       </Box>
     </Box>
