@@ -194,6 +194,26 @@ const JourneyDetails = () => {
                   />
                 )}
                 {id && <PaymentPrompt journeyId={id} />}
+                {/* Preview Button */}
+                {id && journey?.stops && journey.stops.length > 0 && (
+                  <Button
+                    component={Link}
+                    to={`/journeys/${id}/preview`}
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    sx={{
+                      py: 1.5,
+                      fontSize: '1.1rem',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      borderRadius: 3,
+                      width: '100%'
+                    }}
+                  >
+                    Preview Your Journey
+                  </Button>
+                )}
                 <Box sx={{ textAlign: 'center' }}>
                   <Button
                     component={Link}

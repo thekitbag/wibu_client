@@ -25,6 +25,7 @@ This is the frontend client for the "What I Bought You" journey/gift sharing app
 - Journey creation and sharing flow with payment integration
 
 ## Recent Changes
+- STORY-7: Implemented pre-payment journey preview with step-by-step reveal
 - STORY-6: Completed premium design overhaul with dark theme
 - STORY-5: Completed UI polish and component refactoring
 - Extracted JourneyDetails into smaller, focused components

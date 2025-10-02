@@ -107,7 +107,8 @@ function App() {
         <Route path="/create" element={<CreateJourney />} />
         <Route path="/journeys/:id" element={<JourneyDetails />} />
         <Route path="/journeys/:id/success" element={<PaymentSuccess />} />
-        <Route path="/reveal/:shareableToken" element={<RecipientReveal />} />
+        <Route path="/journeys/:id/preview" element={<RecipientReveal mode="preview" />} />
+        <Route path="/reveal/:shareableToken" element={<RecipientReveal mode="final" />} />
       </Routes>
     </ThemeProvider>
   )
