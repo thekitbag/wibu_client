@@ -18,8 +18,8 @@ const PaymentSuccess = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [verificationStatus, setVerificationStatus] = useState('verifying') // 'verifying', 'complete', 'timeout', 'error'
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const pollingIntervalRef = useRef<number | null>(null)
+  const timeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
     const sessionId = searchParams.get('session_id')
@@ -44,11 +44,11 @@ const PaymentSuccess = () => {
 
           // Clear polling and timeout
           if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current)
+            window.clearInterval(pollingIntervalRef.current)
             pollingIntervalRef.current = null
           }
           if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current)
+            window.clearTimeout(timeoutRef.current)
             timeoutRef.current = null
           }
         }
@@ -64,17 +64,17 @@ const PaymentSuccess = () => {
       pollPaymentStatus()
 
       // Set up polling every 2 seconds
-      pollingIntervalRef.current = setInterval(pollPaymentStatus, 2000)
+      pollingIntervalRef.current = window.setInterval(pollPaymentStatus, 2000)
 
       // Set up timeout after 30 seconds
-      timeoutRef.current = setTimeout(() => {
+      timeoutRef.current = window.setTimeout(() => {
         setVerificationStatus('timeout')
         setIsLoading(false)
         setError('There was a slight delay confirming your payment. Please check back in a moment. If the issue persists, contact support.')
 
         // Clear polling
         if (pollingIntervalRef.current) {
-          clearInterval(pollingIntervalRef.current)
+          window.clearInterval(pollingIntervalRef.current)
           pollingIntervalRef.current = null
         }
       }, 30000) // 30 seconds
@@ -85,10 +85,10 @@ const PaymentSuccess = () => {
     // Cleanup on unmount
     return () => {
       if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
+        window.clearInterval(pollingIntervalRef.current)
       }
       if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
+        window.clearTimeout(timeoutRef.current)
       }
     }
   }, [searchParams])
