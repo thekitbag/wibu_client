@@ -64,7 +64,8 @@ const ShareableLink = ({ shareableToken }: ShareableLinkProps) => {
               border: '1px solid',
               borderColor: 'grey.300',
               wordBreak: 'break-all',
-              fontSize: '0.9rem'
+              fontSize: '0.9rem',
+              color: '#000000'
             }}
           >
             {window.location.origin}/reveal/{shareableToken}

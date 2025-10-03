@@ -294,45 +294,22 @@ const PaymentSuccess = () => {
           </Card>
         )}
 
-        {/* Action Buttons */}
-        <Box
+        {/* View Journey Button */}
+        <Button
+          component={Link}
+          to={`/journeys/${id}`}
+          variant="outlined"
+          size="large"
           sx={{
-            display: 'flex',
-            gap: 2,
-            flexDirection: { xs: 'column', sm: 'row' }
+            px: 4,
+            py: 1.5,
+            fontSize: '1rem',
+            fontWeight: 600,
+            textTransform: 'none'
           }}
         >
-          <Button
-            component={Link}
-            to="/create"
-            variant="contained"
-            size="large"
-            sx={{
-              px: 4,
-              py: 1.5,
-              fontSize: '1rem',
-              fontWeight: 600,
-              textTransform: 'none'
-            }}
-          >
-            Create Another Journey
-          </Button>
-          <Button
-            component={Link}
-            to={`/journeys/${id}`}
-            variant="outlined"
-            size="large"
-            sx={{
-              px: 4,
-              py: 1.5,
-              fontSize: '1rem',
-              fontWeight: 600,
-              textTransform: 'none'
-            }}
-          >
-            View Journey
-          </Button>
-        </Box>
+          View Journey Details
+        </Button>
 
         </Box>
       </Container>
