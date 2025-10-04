@@ -13,12 +13,14 @@ import {
   Fade,
   Container
 } from '@mui/material'
+import { FlightTakeoff, Hotel, Restaurant, CardGiftcard, Favorite } from '@mui/icons-material'
 
 interface Stop {
   id: string
   title: string
   note?: string
-  image_url: string
+  image_url?: string
+  icon_name?: string
   external_url?: string
   order: number
 }
@@ -38,6 +40,19 @@ interface RecipientRevealProps {
 const RecipientReveal = ({ mode }: RecipientRevealProps) => {
   const { id, shareableToken } = useParams<{ id?: string; shareableToken?: string }>()
   const navigate = useNavigate()
+
+  // Icon mapping
+  const getIconComponent = (iconName: string) => {
+    if (!iconName) return null;
+    const iconMap: { [key: string]: React.ComponentType<{ sx?: object }> } = {
+      plane: FlightTakeoff,
+      hotel: Hotel,
+      restaurant: Restaurant,
+      gift: CardGiftcard,
+      heart: Favorite,
+    }
+    return iconMap[iconName.toLowerCase()]
+  }
 
   const [journey, setJourney] = useState<Journey | null>(null)
   const [currentStopIndex, setCurrentStopIndex] = useState(0)
@@ -179,8 +194,9 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
               backdropFilter: 'blur(10px)',
               border: '1px solid rgba(171, 71, 188, 0.3)',
               borderRadius: 4,
-              maxWidth: '600px',
               mx: 'auto',
+              width: '100%',
+              maxWidth: { xs: '100%', sm: '90%', md: '80%', lg: '70%' },
               textAlign: 'center',
               p: 6
             }}
@@ -242,14 +258,14 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
               border: '1px solid rgba(171, 71, 188, 0.3)',
               borderRadius: 4,
               overflow: 'hidden',
-              maxWidth: '800px',
               mx: 'auto',
               width: '100%',
+              maxWidth: { xs: '100%', sm: '90%', md: '80%', lg: '70%' },
               display: 'flex',
               flexDirection: 'column'
             }}
           >
-            <Box sx={{ p: 4, textAlign: 'center' }}>
+            <Box sx={{ p: 4, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <Typography
                 variant="h6"
                 sx={{
@@ -292,22 +308,52 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
               )}
 
               <Box sx={{ mb: 4 }}>
-                <CardMedia
-                  component="img"
-                  sx={{
-                    maxHeight: 300,
-                    objectFit: 'contain',
-                    borderRadius: 2,
-                    mx: 'auto',
-                    display: 'block'
-                  }}
-                  image={currentStop.image_url}
-                  alt={currentStop.title}
-                />
+                {currentStop.image_url ? (
+                  <CardMedia
+                    component="img"
+                    sx={{
+                      maxHeight: 300,
+                      objectFit: 'contain',
+                      borderRadius: 2,
+                      mx: 'auto',
+                      display: 'block'
+                    }}
+                    image={currentStop.image_url}
+                    alt={currentStop.title}
+                  />
+                ) : currentStop.icon_name ? (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      minHeight: 200,
+                      maxHeight: 300,
+                      borderRadius: 2,
+                      background: 'linear-gradient(135deg, rgba(171, 71, 188, 0.1) 0%, rgba(255, 160, 0, 0.1) 100%)',
+                      border: '2px solid',
+                      borderColor: 'rgba(171, 71, 188, 0.3)',
+                      mx: 'auto'
+                    }}
+                  >
+                    {(() => {
+                      const IconComponent = getIconComponent(currentStop.icon_name)
+                      return IconComponent ? (
+                        <IconComponent
+                          sx={{
+                            fontSize: 120,
+                            color: 'secondary.main',
+                            filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))'
+                          }}
+                        />
+                      ) : null
+                    })()}
+                  </Box>
+                ) : null}
               </Box>
 
-              {currentStop.external_url && (
-                <Box sx={{ mb: 3, textAlign: 'center' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%' }}>
+                {currentStop.external_url && (
                   <Button
                     component="a"
                     href={currentStop.external_url}
@@ -333,29 +379,29 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
                   >
                     Learn More
                   </Button>
-                </Box>
-              )}
+                )}
 
-              <Button
-                onClick={handleNext}
-                variant="contained"
-                color="secondary"
-                size="large"
-                sx={{
-                  px: 6,
-                  py: 2,
-                  fontSize: '1.2rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  borderRadius: 3,
-                  boxShadow: '0 8px 32px rgba(255, 160, 0, 0.3)',
-                  '&:hover': {
-                    boxShadow: '0 12px 40px rgba(255, 160, 0, 0.4)',
-                  }
-                }}
+                <Button
+                  onClick={handleNext}
+                  variant="contained"
+                  color="secondary"
+                  size="large"
+                  sx={{
+                    px: 6,
+                    py: 2,
+                    fontSize: '1.2rem',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    borderRadius: 3,
+                    boxShadow: '0 8px 32px rgba(255, 160, 0, 0.3)',
+                    '&:hover': {
+                      boxShadow: '0 12px 40px rgba(255, 160, 0, 0.4)',
+                    }
+                  }}
               >
                 {currentStopIndex < sortedStops.length - 1 ? 'Next' : 'Finish'}
               </Button>
+              </Box>
             </Box>
           </Card>
         </Fade>
@@ -371,8 +417,9 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
               backdropFilter: 'blur(10px)',
               border: '1px solid rgba(171, 71, 188, 0.3)',
               borderRadius: 4,
-              maxWidth: '800px',
               mx: 'auto',
+              width: '100%',
+              maxWidth: { xs: '100%', sm: '90%', md: '80%', lg: '70%' },
               p: 4
             }}
           >
@@ -485,8 +532,9 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
               backdropFilter: 'blur(10px)',
               border: '1px solid rgba(171, 71, 188, 0.3)',
               borderRadius: 4,
-              maxWidth: '600px',
               mx: 'auto',
+              width: '100%',
+              maxWidth: { xs: '100%', sm: '90%', md: '80%', lg: '70%' },
               textAlign: 'center',
               p: 6
             }}
@@ -575,7 +623,7 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
 
   if (isLoading) {
     return (
-      <Container maxWidth="md">
+      <Container maxWidth="xl">
         <Box
           sx={{
             display: 'flex',
@@ -592,7 +640,7 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
 
   if (error) {
     return (
-      <Container maxWidth="sm">
+      <Container maxWidth="xl">
         <Box
           sx={{
             display: 'flex',
@@ -675,10 +723,10 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          px: 2
+          px: { xs: 2, sm: 4, md: 6 }
         }}
       >
-        <Container maxWidth="md">
+        <Container maxWidth="lg">
           {renderContent()}
         </Container>
       </Box>

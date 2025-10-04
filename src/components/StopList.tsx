@@ -5,7 +5,9 @@ interface Stop {
   id: string
   title: string
   note?: string
-  image_url: string
+  image_url?: string
+  icon_name?: string
+  external_url?: string
   order: number
 }
 
