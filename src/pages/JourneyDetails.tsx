@@ -30,6 +30,7 @@ const JourneyDetails = () => {
   const [journey, setJourney] = useState<Journey | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [editingStopId, setEditingStopId] = useState<string | null>(null)
 
 
   useEffect(() => {
@@ -69,6 +70,34 @@ const JourneyDetails = () => {
       }
     })
   }
+
+  const handleEditStop = (stop: Stop) => {
+    setEditingStopId(stop.id)
+  }
+
+  const handleStopUpdated = (updatedStop: Stop) => {
+    // Update journey state with the updated stop
+    setJourney(prevJourney => {
+      if (!prevJourney) return prevJourney
+      const stops = prevJourney.stops || []
+      return {
+        ...prevJourney,
+        stops: stops.map(stop =>
+          stop.id === updatedStop.id ? updatedStop : stop
+        ).sort((a, b) => a.order - b.order)
+      }
+    })
+    setEditingStopId(null) // Clear edit mode
+  }
+
+  const handleCancelEdit = () => {
+    setEditingStopId(null)
+  }
+
+  // Get the stop being edited
+  const editingStop = editingStopId
+    ? journey?.stops?.find(stop => stop.id === editingStopId)
+    : null
 
 
 
@@ -174,7 +203,11 @@ const JourneyDetails = () => {
           justifyContent: 'center',
           alignItems: 'flex-start'
         }}>
-          <StopList stops={journey?.stops} />
+          <StopList
+            stops={journey?.stops}
+            onEditStop={handleEditStop}
+            showEditButtons={!journey?.paid}
+          />
 
           {/* Right Sidebar - Conditional based on payment status */}
           <Box sx={{
@@ -193,6 +226,9 @@ const JourneyDetails = () => {
                   <AddStopForm
                     journeyId={id}
                     onStopAdded={handleStopAdded}
+                    editingStop={editingStop}
+                    onStopUpdated={handleStopUpdated}
+                    onCancelEdit={handleCancelEdit}
                   />
                 )}
                 {id && <PaymentPrompt journeyId={id} />}

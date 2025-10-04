@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, Box, Typography, TextField, Alert, Button, CircularProgress, ToggleButton, ToggleButtonGroup } from '@mui/material'
 import { FlightTakeoff, Hotel, Restaurant, CardGiftcard, Favorite } from '@mui/icons-material'
 import axios from 'axios'
@@ -16,9 +16,12 @@ interface Stop {
 interface AddStopFormProps {
   journeyId: string
   onStopAdded: (newStop: Stop) => void
+  editingStop?: Stop | null
+  onStopUpdated?: (updatedStop: Stop) => void
+  onCancelEdit?: () => void
 }
 
-const AddStopForm = ({ journeyId, onStopAdded }: AddStopFormProps) => {
+const AddStopForm = ({ journeyId, onStopAdded, editingStop, onStopUpdated, onCancelEdit }: AddStopFormProps) => {
   const [stopTitle, setStopTitle] = useState('')
   const [stopNote, setStopNote] = useState('')
   const [stopImageUrl, setStopImageUrl] = useState('')
@@ -36,6 +39,25 @@ const AddStopForm = ({ journeyId, onStopAdded }: AddStopFormProps) => {
     { name: 'Heart', value: 'heart', icon: Favorite },
   ]
 
+  // Populate form when editing a stop
+  useEffect(() => {
+    if (editingStop) {
+      setStopTitle(editingStop.title)
+      setStopNote(editingStop.note || '')
+      setStopImageUrl(editingStop.image_url || '')
+      setStopExternalUrl(editingStop.external_url || '')
+      setSelectedIcon(editingStop.icon_name || null)
+    } else {
+      // Clear form when not editing
+      setStopTitle('')
+      setStopNote('')
+      setStopImageUrl('')
+      setStopExternalUrl('')
+      setSelectedIcon(null)
+    }
+    setAddStopError('')
+  }, [editingStop])
+
   const handleIconSelect = (iconValue: string) => {
     setSelectedIcon(iconValue)
     setStopImageUrl('') // Clear image URL when icon is selected
@@ -48,7 +70,7 @@ const AddStopForm = ({ journeyId, onStopAdded }: AddStopFormProps) => {
     }
   }
 
-  const handleAddStop = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!stopTitle.trim()) {
@@ -65,30 +87,41 @@ const AddStopForm = ({ journeyId, onStopAdded }: AddStopFormProps) => {
     setAddStopError('')
 
     try {
-      const response = await axios.post(`/api/journeys/${journeyId}/stops`, {
+      const stopData = {
         title: stopTitle.trim(),
         note: stopNote.trim() || undefined,
         image_url: stopImageUrl.trim() || undefined,
         icon_name: selectedIcon || undefined,
         external_url: stopExternalUrl.trim() || undefined
-      })
+      }
 
-      const newStop = response.data
-      onStopAdded(newStop)
+      if (editingStop) {
+        // Update existing stop
+        const response = await axios.patch(`/api/stops/${editingStop.id}`, stopData)
+        const updatedStop = response.data
+        onStopUpdated?.(updatedStop)
+      } else {
+        // Create new stop
+        const response = await axios.post(`/api/journeys/${journeyId}/stops`, stopData)
+        const newStop = response.data
+        onStopAdded(newStop)
 
-      // Clear form
-      setStopTitle('')
-      setStopNote('')
-      setStopImageUrl('')
-      setStopExternalUrl('')
-      setSelectedIcon(null)
+        // Clear form only when adding (editing is cleared by useEffect)
+        setStopTitle('')
+        setStopNote('')
+        setStopImageUrl('')
+        setStopExternalUrl('')
+        setSelectedIcon(null)
+      }
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        setAddStopError(err.response?.data?.error || 'Failed to add stop. Please try again.')
+        const action = editingStop ? 'update' : 'add'
+        setAddStopError(err.response?.data?.error || `Failed to ${action} stop. Please try again.`)
       } else {
-        setAddStopError('An unknown error occurred while adding the stop.')
+        const action = editingStop ? 'updating' : 'adding'
+        setAddStopError(`An unknown error occurred while ${action} the stop.`)
       }
-      console.error('Error adding stop:', err)
+      console.error(`Error ${editingStop ? 'updating' : 'adding'} stop:`, err)
     } finally {
       setIsAddingStop(false)
     }
@@ -110,12 +143,12 @@ const AddStopForm = ({ journeyId, onStopAdded }: AddStopFormProps) => {
           color: 'primary.main'
         }}
       >
-        Add New Stop
+        {editingStop ? 'Edit Stop' : 'Add New Stop'}
       </Typography>
 
       <Box
         component="form"
-        onSubmit={handleAddStop}
+        onSubmit={handleSubmit}
         sx={{
           display: 'flex',
           flexDirection: 'column',
@@ -260,22 +293,45 @@ const AddStopForm = ({ journeyId, onStopAdded }: AddStopFormProps) => {
           </Alert>
         )}
 
-        <Button
-          type="submit"
-          variant="contained"
-          color="secondary"
-          disabled={isAddingStop}
-          size="large"
-          startIcon={isAddingStop ? <CircularProgress size={20} color="inherit" /> : null}
-          sx={{
-            py: 1.5,
-            fontSize: '1.1rem',
-            fontWeight: 600,
-            textTransform: 'none'
-          }}
-        >
-          {isAddingStop ? 'Adding Stop...' : 'Add Stop'}
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2, flexDirection: editingStop ? 'row' : 'column' }}>
+          <Button
+            type="submit"
+            variant="contained"
+            color="secondary"
+            disabled={isAddingStop}
+            size="large"
+            startIcon={isAddingStop ? <CircularProgress size={20} color="inherit" /> : null}
+            sx={{
+              py: 1.5,
+              fontSize: '1.1rem',
+              fontWeight: 600,
+              textTransform: 'none',
+              flex: editingStop ? 1 : undefined
+            }}
+          >
+            {isAddingStop ? (editingStop ? 'Updating Stop...' : 'Adding Stop...') : (editingStop ? 'Update Stop' : 'Add Stop')}
+          </Button>
+
+          {editingStop && onCancelEdit && (
+            <Button
+              type="button"
+              variant="outlined"
+              color="secondary"
+              disabled={isAddingStop}
+              size="large"
+              onClick={onCancelEdit}
+              sx={{
+                py: 1.5,
+                fontSize: '1.1rem',
+                fontWeight: 600,
+                textTransform: 'none',
+                flex: 1
+              }}
+            >
+              Cancel
+            </Button>
+          )}
+        </Box>
       </Box>
     </Card>
   )

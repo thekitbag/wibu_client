@@ -13,9 +13,11 @@ interface Stop {
 
 interface StopListProps {
   stops?: Stop[]
+  onEditStop?: (stop: Stop) => void
+  showEditButtons?: boolean
 }
 
-const StopList = ({ stops }: StopListProps) => {
+const StopList = ({ stops, onEditStop, showEditButtons = false }: StopListProps) => {
   return (
     <Box sx={{
       flex: { lg: 1 },
@@ -42,6 +44,8 @@ const StopList = ({ stops }: StopListProps) => {
                 key={stop.id}
                 stop={stop}
                 index={index}
+                onEdit={onEditStop}
+                showEditButton={showEditButtons}
               />
             ))}
         </Box>

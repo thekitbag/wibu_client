@@ -1,5 +1,5 @@
-import { Card, CardContent, CardMedia, Box, Typography, CardActionArea, Fade } from '@mui/material'
-import { FlightTakeoff, Hotel, Restaurant, CardGiftcard, Favorite } from '@mui/icons-material'
+import { Card, CardContent, CardMedia, Box, Typography, CardActionArea, Fade, IconButton } from '@mui/material'
+import { FlightTakeoff, Hotel, Restaurant, CardGiftcard, Favorite, Edit } from '@mui/icons-material'
 
 interface Stop {
   id: string
@@ -14,6 +14,8 @@ interface Stop {
 interface StopListItemProps {
   stop: Stop
   index: number
+  onEdit?: (stop: Stop) => void
+  showEditButton?: boolean
 }
 
 const getIconComponent = (iconName: string) => {
@@ -28,7 +30,7 @@ const getIconComponent = (iconName: string) => {
   return iconMap[iconName.toLowerCase()]
 }
 
-const StopListItem = ({ stop, index }: StopListItemProps) => {
+const StopListItem = ({ stop, index, onEdit, showEditButton = false }: StopListItemProps) => {
   return (
     <Fade in={true} timeout={600} style={{ transitionDelay: `${index * 150}ms` }}>
       <Card
@@ -101,6 +103,23 @@ const StopListItem = ({ stop, index }: StopListItemProps) => {
               >
                 {stop.title}
               </Typography>
+              {showEditButton && onEdit && (
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onEdit(stop)
+                  }}
+                  sx={{
+                    color: 'secondary.main',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 160, 0, 0.1)'
+                    }
+                  }}
+                  aria-label="Edit stop"
+                >
+                  <Edit />
+                </IconButton>
+              )}
             </Box>
             {stop.note && (
               <Typography
