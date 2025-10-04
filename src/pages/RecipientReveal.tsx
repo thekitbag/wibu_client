@@ -307,16 +307,25 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
                 </Typography>
               )}
 
-              <Box sx={{ mb: 4 }}>
+              <Box sx={{ mb: 4, overflow: 'hidden', borderRadius: 2 }}>
                 {currentStop.image_url ? (
                   <CardMedia
                     component="img"
                     sx={{
                       maxHeight: 300,
-                      objectFit: 'contain',
+                      objectFit: 'cover',
                       borderRadius: 2,
                       mx: 'auto',
-                      display: 'block'
+                      display: 'block',
+                      animation: 'kenBurns 8s ease-in-out infinite alternate',
+                      '@keyframes kenBurns': {
+                        '0%': {
+                          transform: 'scale(1) translate(0, 0)'
+                        },
+                        '100%': {
+                          transform: 'scale(1.1) translate(-2%, 2%)'
+                        }
+                      }
                     }}
                     image={currentStop.image_url}
                     alt={currentStop.title}
