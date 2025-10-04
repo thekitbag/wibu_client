@@ -325,7 +325,7 @@ describe('JourneyDetails Component', () => {
       fireEvent.submit(form!)
 
       await waitFor(() => {
-        expect(screen.getByText('Title and image URL are required')).toBeInTheDocument()
+        expect(screen.getByText('Title is required')).toBeInTheDocument()
       })
     })
   })
