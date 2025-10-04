@@ -19,6 +19,7 @@ interface Stop {
   title: string
   note?: string
   image_url: string
+  external_url?: string
   order: number
 }
 
@@ -242,7 +243,10 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
               borderRadius: 4,
               overflow: 'hidden',
               maxWidth: '800px',
-              mx: 'auto'
+              mx: 'auto',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column'
             }}
           >
             <Box sx={{ p: 4, textAlign: 'center' }}>
@@ -301,6 +305,36 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
                   alt={currentStop.title}
                 />
               </Box>
+
+              {currentStop.external_url && (
+                <Box sx={{ mb: 3, textAlign: 'center' }}>
+                  <Button
+                    component="a"
+                    href={currentStop.external_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="outlined"
+                    color="secondary"
+                    size="medium"
+                    sx={{
+                      px: 4,
+                      py: 1.5,
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      borderRadius: 3,
+                      borderColor: 'secondary.main',
+                      color: 'secondary.main',
+                      '&:hover': {
+                        borderColor: 'secondary.light',
+                        backgroundColor: 'rgba(255, 160, 0, 0.1)',
+                      }
+                    }}
+                  >
+                    Learn More
+                  </Button>
+                </Box>
+              )}
 
               <Button
                 onClick={handleNext}

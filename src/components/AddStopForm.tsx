@@ -7,6 +7,7 @@ interface Stop {
   title: string
   note?: string
   image_url: string
+  external_url?: string
   order: number
 }
 
@@ -19,6 +20,7 @@ const AddStopForm = ({ journeyId, onStopAdded }: AddStopFormProps) => {
   const [stopTitle, setStopTitle] = useState('')
   const [stopNote, setStopNote] = useState('')
   const [stopImageUrl, setStopImageUrl] = useState('')
+  const [stopExternalUrl, setStopExternalUrl] = useState('')
   const [isAddingStop, setIsAddingStop] = useState(false)
   const [addStopError, setAddStopError] = useState('')
 
@@ -37,7 +39,8 @@ const AddStopForm = ({ journeyId, onStopAdded }: AddStopFormProps) => {
       const response = await axios.post(`/api/journeys/${journeyId}/stops`, {
         title: stopTitle.trim(),
         note: stopNote.trim() || undefined,
-        image_url: stopImageUrl.trim()
+        image_url: stopImageUrl.trim(),
+        external_url: stopExternalUrl.trim() || undefined
       })
 
       const newStop = response.data
@@ -47,6 +50,7 @@ const AddStopForm = ({ journeyId, onStopAdded }: AddStopFormProps) => {
       setStopTitle('')
       setStopNote('')
       setStopImageUrl('')
+      setStopExternalUrl('')
     } catch (err) {
       if (axios.isAxiosError(err)) {
         setAddStopError(err.response?.data?.error || 'Failed to add stop. Please try again.')
@@ -130,6 +134,22 @@ const AddStopForm = ({ journeyId, onStopAdded }: AddStopFormProps) => {
           disabled={isAddingStop}
           multiline
           rows={3}
+          variant="outlined"
+          sx={{
+            '& .MuiInputLabel-root': {
+              fontSize: '1rem',
+              fontWeight: 500
+            }
+          }}
+        />
+
+        <TextField
+          fullWidth
+          label="Website Link (Optional)"
+          placeholder="https://example.com"
+          value={stopExternalUrl}
+          onChange={(e) => setStopExternalUrl(e.target.value)}
+          disabled={isAddingStop}
           variant="outlined"
           sx={{
             '& .MuiInputLabel-root': {
