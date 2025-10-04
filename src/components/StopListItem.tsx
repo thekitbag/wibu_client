@@ -51,14 +51,23 @@ const StopListItem = ({ stop, index, onEdit, showEditButton = false }: StopListI
       >
       <CardActionArea>
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' } }}>
-        <Box sx={{ width: { xs: '100%', sm: '33%' } }}>
+        <Box sx={{ width: { xs: '100%', sm: '33%' }, overflow: 'hidden' }}>
           {stop.image_url ? (
             <CardMedia
               component="img"
               sx={{
                 height: { xs: 200, sm: '100%' },
                 minHeight: { sm: 180 },
-                objectFit: 'cover'
+                objectFit: 'cover',
+                animation: 'kenBurns 8s ease-in-out infinite alternate',
+                '@keyframes kenBurns': {
+                  '0%': {
+                    transform: 'scale(1) translate(0, 0)'
+                  },
+                  '100%': {
+                    transform: 'scale(1.1) translate(-2%, 2%)'
+                  }
+                }
               }}
               image={stop.image_url}
               alt={stop.title}
