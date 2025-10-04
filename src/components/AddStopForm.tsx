@@ -178,7 +178,8 @@ const AddStopForm = ({ journeyId, onStopAdded, editingStop, onStopUpdated, onCan
           placeholder="https://example.com/image.jpg"
           value={stopImageUrl}
           onChange={(e) => handleImageUrlChange(e.target.value)}
-          disabled={isAddingStop || selectedIcon !== null}
+          onFocus={() => setSelectedIcon(null)}
+          disabled={isAddingStop}
           variant="outlined"
           sx={{
             '& .MuiInputLabel-root': {
