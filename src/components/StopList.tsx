@@ -5,15 +5,19 @@ interface Stop {
   id: string
   title: string
   note?: string
-  image_url: string
+  image_url?: string
+  icon_name?: string
+  external_url?: string
   order: number
 }
 
 interface StopListProps {
   stops?: Stop[]
+  onEditStop?: (stop: Stop) => void
+  showEditButtons?: boolean
 }
 
-const StopList = ({ stops }: StopListProps) => {
+const StopList = ({ stops, onEditStop, showEditButtons = false }: StopListProps) => {
   return (
     <Box sx={{
       flex: { lg: 1 },
@@ -40,6 +44,8 @@ const StopList = ({ stops }: StopListProps) => {
                 key={stop.id}
                 stop={stop}
                 index={index}
+                onEdit={onEditStop}
+                showEditButton={showEditButtons}
               />
             ))}
         </Box>

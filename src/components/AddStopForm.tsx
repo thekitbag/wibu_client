@@ -1,32 +1,85 @@
-import { useState } from 'react'
-import { Card, Box, Typography, TextField, Alert, Button, CircularProgress } from '@mui/material'
+import { useState, useEffect } from 'react'
+import { Card, Box, Typography, TextField, Alert, Button, CircularProgress, ToggleButton, ToggleButtonGroup } from '@mui/material'
+import { FlightTakeoff, Hotel, Restaurant, CardGiftcard, Favorite } from '@mui/icons-material'
 import axios from 'axios'
 
 interface Stop {
   id: string
   title: string
   note?: string
-  image_url: string
+  image_url?: string
+  icon_name?: string
+  external_url?: string
   order: number
 }
 
 interface AddStopFormProps {
   journeyId: string
   onStopAdded: (newStop: Stop) => void
+  editingStop?: Stop | null
+  onStopUpdated?: (updatedStop: Stop) => void
+  onCancelEdit?: () => void
 }
 
-const AddStopForm = ({ journeyId, onStopAdded }: AddStopFormProps) => {
+const AddStopForm = ({ journeyId, onStopAdded, editingStop, onStopUpdated, onCancelEdit }: AddStopFormProps) => {
   const [stopTitle, setStopTitle] = useState('')
   const [stopNote, setStopNote] = useState('')
   const [stopImageUrl, setStopImageUrl] = useState('')
+  const [stopExternalUrl, setStopExternalUrl] = useState('')
+  const [selectedIcon, setSelectedIcon] = useState<string | null>(null)
   const [isAddingStop, setIsAddingStop] = useState(false)
   const [addStopError, setAddStopError] = useState('')
 
-  const handleAddStop = async (e: React.FormEvent) => {
+  // Icon mapping
+  const iconOptions = [
+    { name: 'Plane', value: 'plane', icon: FlightTakeoff },
+    { name: 'Hotel', value: 'hotel', icon: Hotel },
+    { name: 'Restaurant', value: 'restaurant', icon: Restaurant },
+    { name: 'Gift', value: 'gift', icon: CardGiftcard },
+    { name: 'Heart', value: 'heart', icon: Favorite },
+  ]
+
+  // Populate form when editing a stop
+  useEffect(() => {
+    if (editingStop) {
+      setStopTitle(editingStop.title)
+      setStopNote(editingStop.note || '')
+      setStopImageUrl(editingStop.image_url || '')
+      setStopExternalUrl(editingStop.external_url || '')
+      setSelectedIcon(editingStop.icon_name || null)
+    } else {
+      // Clear form when not editing
+      setStopTitle('')
+      setStopNote('')
+      setStopImageUrl('')
+      setStopExternalUrl('')
+      setSelectedIcon(null)
+    }
+    setAddStopError('')
+  }, [editingStop])
+
+  const handleIconSelect = (iconValue: string) => {
+    setSelectedIcon(iconValue)
+    setStopImageUrl('') // Clear image URL when icon is selected
+  }
+
+  const handleImageUrlChange = (value: string) => {
+    setStopImageUrl(value)
+    if (value.trim()) {
+      setSelectedIcon(null) // Clear icon when image URL is entered
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!stopTitle.trim() || !stopImageUrl.trim()) {
-      setAddStopError('Title and image URL are required')
+    if (!stopTitle.trim()) {
+      setAddStopError('Title is required')
+      return
+    }
+
+    if (!stopImageUrl.trim() && !selectedIcon) {
+      setAddStopError('Either an image URL or an icon must be selected')
       return
     }
 
@@ -34,26 +87,41 @@ const AddStopForm = ({ journeyId, onStopAdded }: AddStopFormProps) => {
     setAddStopError('')
 
     try {
-      const response = await axios.post(`/api/journeys/${journeyId}/stops`, {
+      const stopData = {
         title: stopTitle.trim(),
         note: stopNote.trim() || undefined,
-        image_url: stopImageUrl.trim()
-      })
+        image_url: stopImageUrl.trim() || undefined,
+        icon_name: selectedIcon || undefined,
+        external_url: stopExternalUrl.trim() || undefined
+      }
 
-      const newStop = response.data
-      onStopAdded(newStop)
+      if (editingStop) {
+        // Update existing stop
+        const response = await axios.patch(`/api/stops/${editingStop.id}`, stopData)
+        const updatedStop = response.data
+        onStopUpdated?.(updatedStop)
+      } else {
+        // Create new stop
+        const response = await axios.post(`/api/journeys/${journeyId}/stops`, stopData)
+        const newStop = response.data
+        onStopAdded(newStop)
 
-      // Clear form
-      setStopTitle('')
-      setStopNote('')
-      setStopImageUrl('')
+        // Clear form only when adding (editing is cleared by useEffect)
+        setStopTitle('')
+        setStopNote('')
+        setStopImageUrl('')
+        setStopExternalUrl('')
+        setSelectedIcon(null)
+      }
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        setAddStopError(err.response?.data?.error || 'Failed to add stop. Please try again.')
+        const action = editingStop ? 'update' : 'add'
+        setAddStopError(err.response?.data?.error || `Failed to ${action} stop. Please try again.`)
       } else {
-        setAddStopError('An unknown error occurred while adding the stop.')
+        const action = editingStop ? 'updating' : 'adding'
+        setAddStopError(`An unknown error occurred while ${action} the stop.`)
       }
-      console.error('Error adding stop:', err)
+      console.error(`Error ${editingStop ? 'updating' : 'adding'} stop:`, err)
     } finally {
       setIsAddingStop(false)
     }
@@ -75,12 +143,12 @@ const AddStopForm = ({ journeyId, onStopAdded }: AddStopFormProps) => {
           color: 'primary.main'
         }}
       >
-        Add New Stop
+        {editingStop ? 'Edit Stop' : 'Add New Stop'}
       </Typography>
 
       <Box
         component="form"
-        onSubmit={handleAddStop}
+        onSubmit={handleSubmit}
         sx={{
           display: 'flex',
           flexDirection: 'column',
@@ -106,12 +174,86 @@ const AddStopForm = ({ journeyId, onStopAdded }: AddStopFormProps) => {
 
         <TextField
           fullWidth
-          label="Image URL"
+          label="Image URL (Optional)"
           placeholder="https://example.com/image.jpg"
           value={stopImageUrl}
-          onChange={(e) => setStopImageUrl(e.target.value)}
+          onChange={(e) => handleImageUrlChange(e.target.value)}
+          disabled={isAddingStop || selectedIcon !== null}
+          variant="outlined"
+          sx={{
+            '& .MuiInputLabel-root': {
+              fontSize: '1rem',
+              fontWeight: 500
+            }
+          }}
+        />
+
+        <Box>
+          <Typography
+            variant="body1"
+            sx={{
+              fontWeight: 500,
+              mb: 2,
+              color: 'text.primary'
+            }}
+          >
+            Or choose an icon:
+          </Typography>
+          <ToggleButtonGroup
+            value={selectedIcon}
+            exclusive
+            onChange={(_, value) => value && handleIconSelect(value)}
+            disabled={isAddingStop || stopImageUrl.trim() !== ''}
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 1,
+              '& .MuiToggleButton-root': {
+                border: '2px solid',
+                borderColor: 'grey.300',
+                borderRadius: 2,
+                minWidth: 80,
+                minHeight: 80,
+                flexDirection: 'column',
+                gap: 1,
+                '&:hover': {
+                  borderColor: 'secondary.main',
+                  backgroundColor: 'rgba(255, 160, 0, 0.1)',
+                },
+                '&.Mui-selected': {
+                  borderColor: 'secondary.main',
+                  backgroundColor: 'rgba(255, 160, 0, 0.2)',
+                  color: 'secondary.main',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 160, 0, 0.3)',
+                  }
+                }
+              }
+            }}
+          >
+            {iconOptions.map((option) => {
+              const IconComponent = option.icon
+              return (
+                <ToggleButton key={option.value} value={option.value}>
+                  <IconComponent sx={{ fontSize: 32 }} />
+                  <Typography variant="caption" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                    {option.name}
+                  </Typography>
+                </ToggleButton>
+              )
+            })}
+          </ToggleButtonGroup>
+        </Box>
+
+        <TextField
+          fullWidth
+          label="Note (Optional)"
+          placeholder="Add a note about this stop"
+          value={stopNote}
+          onChange={(e) => setStopNote(e.target.value)}
           disabled={isAddingStop}
-          required
+          multiline
+          rows={3}
           variant="outlined"
           sx={{
             '& .MuiInputLabel-root': {
@@ -123,13 +265,11 @@ const AddStopForm = ({ journeyId, onStopAdded }: AddStopFormProps) => {
 
         <TextField
           fullWidth
-          label="Note (Optional)"
-          placeholder="Add a note about this stop"
-          value={stopNote}
-          onChange={(e) => setStopNote(e.target.value)}
+          label="Website Link (Optional)"
+          placeholder="https://example.com"
+          value={stopExternalUrl}
+          onChange={(e) => setStopExternalUrl(e.target.value)}
           disabled={isAddingStop}
-          multiline
-          rows={3}
           variant="outlined"
           sx={{
             '& .MuiInputLabel-root': {
@@ -153,22 +293,45 @@ const AddStopForm = ({ journeyId, onStopAdded }: AddStopFormProps) => {
           </Alert>
         )}
 
-        <Button
-          type="submit"
-          variant="contained"
-          color="secondary"
-          disabled={isAddingStop}
-          size="large"
-          startIcon={isAddingStop ? <CircularProgress size={20} color="inherit" /> : null}
-          sx={{
-            py: 1.5,
-            fontSize: '1.1rem',
-            fontWeight: 600,
-            textTransform: 'none'
-          }}
-        >
-          {isAddingStop ? 'Adding Stop...' : 'Add Stop'}
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2, flexDirection: editingStop ? 'row' : 'column' }}>
+          <Button
+            type="submit"
+            variant="contained"
+            color="secondary"
+            disabled={isAddingStop}
+            size="large"
+            startIcon={isAddingStop ? <CircularProgress size={20} color="inherit" /> : null}
+            sx={{
+              py: 1.5,
+              fontSize: '1.1rem',
+              fontWeight: 600,
+              textTransform: 'none',
+              flex: editingStop ? 1 : undefined
+            }}
+          >
+            {isAddingStop ? (editingStop ? 'Updating Stop...' : 'Adding Stop...') : (editingStop ? 'Update Stop' : 'Add Stop')}
+          </Button>
+
+          {editingStop && onCancelEdit && (
+            <Button
+              type="button"
+              variant="outlined"
+              color="secondary"
+              disabled={isAddingStop}
+              size="large"
+              onClick={onCancelEdit}
+              sx={{
+                py: 1.5,
+                fontSize: '1.1rem',
+                fontWeight: 600,
+                textTransform: 'none',
+                flex: 1
+              }}
+            >
+              Cancel
+            </Button>
+          )}
+        </Box>
       </Box>
     </Card>
   )
