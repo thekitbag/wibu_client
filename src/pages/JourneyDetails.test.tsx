@@ -24,7 +24,13 @@ vi.mock('@stripe/stripe-js', () => ({
 
 // Mock @mui/icons-material
 vi.mock('@mui/icons-material', () => ({
-  ContentCopy: () => null
+  ContentCopy: () => null,
+  FlightTakeoff: () => null,
+  Hotel: () => null,
+  Restaurant: () => null,
+  CardGiftcard: () => null,
+  Favorite: () => null,
+  Edit: () => null
 }))
 
 const mockedAxios = axios as unknown as {
