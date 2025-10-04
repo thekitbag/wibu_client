@@ -87,12 +87,22 @@ const AddStopForm = ({ journeyId, onStopAdded, editingStop, onStopUpdated, onCan
     setAddStopError('')
 
     try {
+      const hasImageUrl = stopImageUrl.trim()
+      const hasIcon = selectedIcon
+
       const stopData = {
         title: stopTitle.trim(),
         note: stopNote.trim() || undefined,
-        image_url: stopImageUrl.trim() || undefined,
-        icon_name: selectedIcon || undefined,
+        image_url: hasImageUrl || null,
+        icon_name: hasIcon || null,
         external_url: stopExternalUrl.trim() || undefined
+      }
+
+      // Ensure mutual exclusivity - if one is set, the other should be null
+      if (hasImageUrl) {
+        stopData.icon_name = null
+      } else if (hasIcon) {
+        stopData.image_url = null
       }
 
       if (editingStop) {
@@ -178,7 +188,11 @@ const AddStopForm = ({ journeyId, onStopAdded, editingStop, onStopUpdated, onCan
           placeholder="https://example.com/image.jpg"
           value={stopImageUrl}
           onChange={(e) => handleImageUrlChange(e.target.value)}
-          onFocus={() => setSelectedIcon(null)}
+          onFocus={() => {
+            if (selectedIcon) {
+              setSelectedIcon(null)
+            }
+          }}
           disabled={isAddingStop}
           variant="outlined"
           sx={{
