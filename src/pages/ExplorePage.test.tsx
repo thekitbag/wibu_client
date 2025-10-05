@@ -4,6 +4,13 @@ import { MemoryRouter } from 'react-router-dom'
 import axios from 'axios'
 import ExplorePage from './ExplorePage'
 
+interface PublicJourney {
+  id: string
+  journeyTitle: string
+  heroImageUrl: string
+  highlights: string[]
+}
+
 // Mock axios
 vi.mock('axios', () => ({
   default: {
@@ -82,7 +89,7 @@ describe('ExplorePage Component', () => {
   })
 
   it('makes correct API call', async () => {
-    const mockJourneys: any[] = []
+    const mockJourneys: PublicJourney[] = []
     mockedAxios.get.mockResolvedValueOnce({ data: mockJourneys })
 
     renderWithRouter(<ExplorePage />)
@@ -192,7 +199,7 @@ describe('ExplorePage Component', () => {
 
   it('displays home navigation button', async () => {
     // Mock successful API response so page renders fully
-    const mockJourneys: any[] = []
+    const mockJourneys: PublicJourney[] = []
     mockedAxios.get.mockResolvedValueOnce({ data: mockJourneys })
 
     renderWithRouter(<ExplorePage />)
