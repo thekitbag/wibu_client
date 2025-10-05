@@ -22,6 +22,11 @@ vi.mock('axios', () => ({
   }
 }))
 
+// Mock @mui/icons-material
+vi.mock('@mui/icons-material', () => ({
+  Home: () => null
+}))
+
 const mockedAxios = axios as unknown as {
   post: ReturnType<typeof vi.fn>
 }
@@ -200,5 +205,14 @@ describe('CreateJourney Component', () => {
 
     // Should only be called once
     expect(mockedAxios.post).toHaveBeenCalledTimes(1)
+  })
+
+  it('displays home navigation button', () => {
+    renderWithRouter(<CreateJourney />)
+
+    // Should have a link that goes to home
+    const homeLink = screen.getByRole('link', { name: /return to home/i })
+    expect(homeLink).toBeInTheDocument()
+    expect(homeLink).toHaveAttribute('href', '/')
   })
 })

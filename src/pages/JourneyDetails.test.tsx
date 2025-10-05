@@ -30,7 +30,8 @@ vi.mock('@mui/icons-material', () => ({
   Restaurant: () => null,
   CardGiftcard: () => null,
   Favorite: () => null,
-  Edit: () => null
+  Edit: () => null,
+  Home: () => null
 }))
 
 const mockedAxios = axios as unknown as {
@@ -328,5 +329,27 @@ describe('JourneyDetails Component', () => {
         expect(screen.getByText('Title is required')).toBeInTheDocument()
       })
     })
+  })
+
+  it('displays home navigation button', async () => {
+    const mockJourney = {
+      id: 'test-journey-id',
+      title: 'Test Journey',
+      stops: [],
+      paid: false
+    }
+
+    mockedAxios.get.mockResolvedValueOnce({ data: mockJourney })
+
+    renderWithRouter(<JourneyDetails />, '/journeys/test-journey-id')
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Journey')).toBeInTheDocument()
+    })
+
+    // Should have a link that goes to home
+    const homeLink = screen.getByRole('link', { name: /return to home/i })
+    expect(homeLink).toBeInTheDocument()
+    expect(homeLink).toHaveAttribute('href', '/')
   })
 })

@@ -14,6 +14,7 @@ import {
   Container
 } from '@mui/material'
 import { FlightTakeoff, Hotel, Restaurant, CardGiftcard, Favorite } from '@mui/icons-material'
+import HomeNavigation from '../components/HomeNavigation'
 
 interface Stop {
   id: string
@@ -697,14 +698,16 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #121212 100%)',
-        position: 'relative',
-        overflow: 'hidden'
-      }}
-    >
+    <>
+      <HomeNavigation />
+      <Box
+        sx={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #121212 100%)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
       {/* Background image if current stop exists and we're in journey view */}
       {currentView === 'journey' && currentStop && (
         <Box
@@ -740,6 +743,7 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
         </Container>
       </Box>
     </Box>
+    </>
   )
 }
 

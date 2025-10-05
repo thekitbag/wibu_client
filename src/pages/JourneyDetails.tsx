@@ -6,6 +6,7 @@ import StopList from '../components/StopList'
 import AddStopForm from '../components/AddStopForm'
 import PaymentPrompt from '../components/PaymentPrompt'
 import ShareableLink from '../components/ShareableLink'
+import HomeNavigation from '../components/HomeNavigation'
 
 interface Stop {
   id: string
@@ -167,7 +168,9 @@ const JourneyDetails = () => {
   }
 
   return (
-    <Container maxWidth="xl">
+    <>
+      <HomeNavigation />
+      <Container maxWidth="xl">
       <Box sx={{ py: 4, px: { xs: 2, md: 4 }, mx: 'auto', maxWidth: '1400px' }}>
         {/* Journey Header */}
         <Box sx={{ textAlign: 'center', mb: 4 }}>
@@ -275,6 +278,7 @@ const JourneyDetails = () => {
       </Box>
 
     </Container>
+    </>
   )
 }
 
