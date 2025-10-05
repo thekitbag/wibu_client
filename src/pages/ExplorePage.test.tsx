@@ -206,7 +206,7 @@ describe('ExplorePage Component', () => {
 
     // Wait for loading to complete
     await waitFor(() => {
-      expect(screen.getByText('Discover inspiration from beautiful journeys')).toBeInTheDocument()
+      expect(screen.getByText('Discover inspiration from beautiful journeys created by our community')).toBeInTheDocument()
     })
 
     // Should have a link that goes to home
