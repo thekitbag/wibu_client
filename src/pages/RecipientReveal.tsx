@@ -11,9 +11,16 @@ import {
   Card,
   CardMedia,
   Fade,
-  Container
+  Container,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton
 } from '@mui/material'
-import { FlightTakeoff, Hotel, Restaurant, CardGiftcard, Favorite } from '@mui/icons-material'
+import { FlightTakeoff, Hotel, Restaurant, CardGiftcard, Favorite, Close, Twitter, Facebook } from '@mui/icons-material'
+import HomeNavigation from '../components/HomeNavigation'
+import PublicJourneyCard from '../components/PublicJourneyCard'
 
 interface Stop {
   id: string
@@ -62,6 +69,7 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
   const [paymentError, setPaymentError] = useState('')
   const [currentView, setCurrentView] = useState<'welcome' | 'journey' | 'summary' | 'payment'>('welcome')
   const [fadeKey, setFadeKey] = useState(0)
+  const [shareModalOpen, setShareModalOpen] = useState(false)
 
   useEffect(() => {
     const fetchJourney = async () => {
@@ -519,13 +527,35 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
                 </Button>
               </Box>
             ) : (
-              <Typography
-                variant="body1"
-                color="text.secondary"
-                sx={{ textAlign: 'center', fontSize: '1.1rem', fontStyle: 'italic' }}
-              >
-                Thank you for experiencing this thoughtful journey.
-              </Typography>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  sx={{ mb: 3, fontSize: '1.1rem', fontStyle: 'italic' }}
+                >
+                  Thank you for experiencing this thoughtful journey.
+                </Typography>
+                <Button
+                  onClick={() => setShareModalOpen(true)}
+                  variant="contained"
+                  color="secondary"
+                  size="large"
+                  sx={{
+                    px: 6,
+                    py: 2,
+                    fontSize: '1.1rem',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    borderRadius: 3,
+                    boxShadow: '0 8px 32px rgba(255, 160, 0, 0.3)',
+                    '&:hover': {
+                      boxShadow: '0 12px 40px rgba(255, 160, 0, 0.4)',
+                    }
+                  }}
+                >
+                  Share Your Gift
+                </Button>
+              </Box>
             )}
           </Card>
         </Fade>
@@ -697,14 +727,16 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #121212 100%)',
-        position: 'relative',
-        overflow: 'hidden'
-      }}
-    >
+    <>
+      <HomeNavigation />
+      <Box
+        sx={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #121212 100%)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
       {/* Background image if current stop exists and we're in journey view */}
       {currentView === 'journey' && currentStop && (
         <Box
@@ -739,7 +771,118 @@ const RecipientReveal = ({ mode }: RecipientRevealProps) => {
           {renderContent()}
         </Container>
       </Box>
+
+      {/* Sharing Modal */}
+      <Dialog
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: 3,
+            background: 'rgba(30, 30, 30, 0.95)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(171, 71, 188, 0.3)',
+          }
+        }}
+      >
+        <DialogTitle
+          sx={{
+            textAlign: 'center',
+            background: 'linear-gradient(135deg, #ab47bc 0%, #ffa000 100%)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontWeight: 700,
+            fontSize: '1.5rem',
+            pb: 2
+          }}
+        >
+          Share Your Gift
+          <IconButton
+            onClick={() => setShareModalOpen(false)}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: 'text.secondary'
+            }}
+          >
+            <Close />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ textAlign: 'center', pb: 2 }}>
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            sx={{ mb: 3 }}
+          >
+            Share this beautiful journey with others
+          </Typography>
+
+          {/* Journey Preview */}
+          {journey && (
+            <Box sx={{ mb: 3, mx: 'auto', maxWidth: '300px' }}>
+              <PublicJourneyCard
+                journey={{
+                  id: journey.id,
+                  journeyTitle: journey.title,
+                  heroImageUrl: sortedStops[0]?.image_url || '',
+                  highlights: sortedStops.slice(0, 3).map(stop => stop.title)
+                }}
+              />
+            </Box>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 2 }}>
+          <Button
+            component="a"
+            href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(
+              `${window.location.origin}/journeys/public/${journey?.id}`
+            )}&text=${encodeURIComponent('Check out the amazing gift I just received!')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="contained"
+            startIcon={<Twitter />}
+            sx={{
+              backgroundColor: '#1DA1F2',
+              '&:hover': {
+                backgroundColor: '#1a91da'
+              },
+              textTransform: 'none',
+              px: 3
+            }}
+          >
+            Share on X
+          </Button>
+
+          <Button
+            component="a"
+            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+              `${window.location.origin}/journeys/public/${journey?.id}`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="contained"
+            startIcon={<Facebook />}
+            sx={{
+              backgroundColor: '#1877F2',
+              '&:hover': {
+                backgroundColor: '#166fe5'
+              },
+              textTransform: 'none',
+              px: 3
+            }}
+          >
+            Share on Facebook
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
+    </>
   )
 }
 
