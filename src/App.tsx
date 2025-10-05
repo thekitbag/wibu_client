@@ -7,6 +7,7 @@ import JourneyDetails from './pages/JourneyDetails'
 import PaymentSuccess from './pages/PaymentSuccess'
 import RecipientReveal from './pages/RecipientReveal'
 import ExplorePage from './pages/ExplorePage'
+import PublicJourneyPage from './pages/PublicJourneyPage'
 
 function App() {
   return (
@@ -318,6 +319,7 @@ function App() {
         <Route path="/journeys/:id" element={<JourneyDetails />} />
         <Route path="/journeys/:id/success" element={<PaymentSuccess />} />
         <Route path="/journeys/:id/preview" element={<RecipientReveal mode="preview" />} />
+        <Route path="/journeys/public/:journeyId" element={<PublicJourneyPage />} />
         <Route path="/reveal/:shareableToken" element={<RecipientReveal mode="final" />} />
       </Routes>
     </ThemeProvider>
