@@ -25,12 +25,23 @@ vi.mock('@mui/icons-material', () => {
 });
 
 // Mock PublicJourneyCard
+interface PublicJourneyCardProps {
+  journey: {
+    journeyTitle: string;
+    heroImageUrl: string | null;
+    highlights: string[];
+  };
+}
 vi.mock('../components/PublicJourneyCard', () => ({
-  default: ({ journey }: { journey: any }) => (
+  default: ({ journey }: PublicJourneyCardProps) => (
     <div data-testid="public-journey-card">
-      <span>{journey.journeyTitle}</span>
+      <div>{journey.journeyTitle}</div>
+      <div>{journey.heroImageUrl}</div>
+      {journey.highlights.map((highlight: string, index: number) => (
+        <div key={index}>{highlight}</div>
+      ))}
     </div>
-  ),
+  )
 }))
 
 const mockedAxios = axios as unknown as { get: ReturnType<typeof vi.fn> }
