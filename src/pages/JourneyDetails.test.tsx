@@ -65,9 +65,11 @@ describe('JourneyDetails Component', () => {
     // Mock axios to return a pending promise
     mockedAxios.get.mockImplementation(() => new Promise(() => {}))
 
-    renderWithRouter(<JourneyDetails />, '/journeys/test-id')
+    const { unmount } = renderWithRouter(<JourneyDetails />, '/journeys/test-id')
 
     expect(screen.getByRole('progressbar')).toBeInTheDocument()
+    // Ensure cleanup to avoid open handles
+    unmount()
   })
 
   it('displays journey details when successfully loaded', async () => {

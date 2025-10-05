@@ -49,22 +49,25 @@ describe('PaymentSuccess Component', () => {
     // Mock axios to return a pending promise
     mockedAxios.get.mockImplementation(() => new Promise(() => {}))
 
-    renderWithRouter()
+    const { unmount } = renderWithRouter()
 
     expect(screen.getByText('Verifying payment, please wait...')).toBeInTheDocument()
     expect(screen.getByText(/We're confirming your payment/)).toBeInTheDocument()
+    // Ensure cleanup to avoid open intervals/timeouts
+    unmount()
   })
 
   it('displays home navigation button during verification', () => {
     // Mock axios to return a pending promise
     mockedAxios.get.mockImplementation(() => new Promise(() => {}))
 
-    renderWithRouter()
+    const { unmount } = renderWithRouter()
 
     // Should have a link that goes to home
     const homeLink = screen.getByRole('link', { name: /return to home/i })
     expect(homeLink).toBeInTheDocument()
     expect(homeLink).toHaveAttribute('href', '/')
+    unmount()
   })
 
   it('shows error state when session_id is missing', () => {

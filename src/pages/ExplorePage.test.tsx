@@ -54,9 +54,11 @@ describe('ExplorePage Component', () => {
     // Mock axios to return a pending promise
     mockedAxios.get.mockImplementation(() => new Promise(() => {}))
 
-    renderWithRouter(<ExplorePage />)
+    const { unmount } = renderWithRouter(<ExplorePage />)
 
     expect(screen.getByRole('progressbar')).toBeInTheDocument()
+    // Ensure cleanup to avoid open handles
+    unmount()
   })
 
   it('displays journey cards when successfully loaded', async () => {

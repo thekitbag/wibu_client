@@ -48,20 +48,23 @@ describe('PublicJourneyPage Component', () => {
     // Mock axios to return a pending promise
     mockedAxios.get.mockImplementation(() => new Promise(() => {}))
 
-    renderWithRouter()
+    const { unmount } = renderWithRouter()
 
     expect(screen.getByRole('progressbar')).toBeInTheDocument()
+    // Ensure cleanup to avoid open handles
+    unmount()
   })
 
   it('displays home navigation button', () => {
     // Mock axios to return a pending promise
     mockedAxios.get.mockImplementation(() => new Promise(() => {}))
 
-    renderWithRouter()
+    const { unmount } = renderWithRouter()
 
     const homeLink = screen.getByRole('link', { name: /return to home/i })
     expect(homeLink).toBeInTheDocument()
     expect(homeLink).toHaveAttribute('href', '/')
+    unmount()
   })
 
   it('displays public journey when successfully loaded', async () => {
