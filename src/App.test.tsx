@@ -1,10 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import App from './App'
 
 // Mock @mui/icons-material to prevent EMFILE errors
-vi.mock('@mui/icons-material', () => {
+jest.mock('@mui/icons-material', () => {
   // Create a proxy to catch all named export requests
   const iconProxy = new Proxy({ __esModule: true }, {
     get: (_target, prop) => {
@@ -16,19 +15,19 @@ vi.mock('@mui/icons-material', () => {
 });
 
 // Mock the page components
-vi.mock('./pages/CreateJourney', () => ({
+jest.mock('./pages/CreateJourney', () => ({
   default: () => <div data-testid="create-journey-page">CreateJourney Component</div>
 }))
 
-vi.mock('./pages/JourneyDetails', () => ({
+jest.mock('./pages/JourneyDetails', () => ({
   default: () => <div data-testid="journey-details-page">JourneyDetails Component</div>
 }))
 
-vi.mock('./pages/PaymentSuccess', () => ({
+jest.mock('./pages/PaymentSuccess', () => ({
   default: () => <div data-testid="payment-success-page">PaymentSuccess Component</div>
 }))
 
-vi.mock('./pages/RecipientReveal', () => ({
+jest.mock('./pages/RecipientReveal', () => ({
   default: () => <div data-testid="recipient-reveal-page">RecipientReveal Component</div>
 }))
 
@@ -43,7 +42,7 @@ const renderWithRouter = (initialEntry = '/') => {
 
 describe('App Component Routing', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
   })
 
   it('renders home page at root path', () => {
@@ -99,7 +98,7 @@ describe('App Component Routing', () => {
 
       // Clean up this render before the next iteration
       unmount()
-      vi.clearAllMocks()
+      jest.clearAllMocks()
     })
   })
 
@@ -136,7 +135,7 @@ describe('App Component Routing', () => {
 
       // Clean up for next iteration
       unmount()
-      vi.clearAllMocks()
+      jest.clearAllMocks()
     })
   })
 
@@ -168,7 +167,7 @@ describe('App Component Routing', () => {
         const { unmount } = renderWithRouter(`/journeys/${journeyId}`)
         expect(screen.getByTestId('journey-details-page')).toBeInTheDocument()
         unmount()
-        vi.clearAllMocks()
+        jest.clearAllMocks()
       })
     })
   })

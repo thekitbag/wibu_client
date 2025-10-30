@@ -1,19 +1,18 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import axios from 'axios'
 import RecipientReveal from './RecipientReveal'
 
 // Mock axios
-vi.mock('axios', () => ({
+jest.mock('axios', () => ({
   default: {
-    get: vi.fn(),
-    isAxiosError: vi.fn((error) => error && error.isAxiosError),
+    get: jest.fn(),
+    isAxiosError: jest.fn((error) => error && error.isAxiosError),
   },
 }))
 
 // Mock MUI Icons
-vi.mock('@mui/icons-material', () => {
+jest.mock('@mui/icons-material', () => {
   // Create a proxy to catch all named export requests
   const iconProxy = new Proxy({ __esModule: true }, {
     get: (_target, prop) => {
@@ -32,7 +31,7 @@ interface PublicJourneyCardProps {
     highlights: string[];
   };
 }
-vi.mock('../components/PublicJourneyCard', () => ({
+jest.mock('../components/PublicJourneyCard', () => ({
   default: ({ journey }: PublicJourneyCardProps) => (
     <div data-testid="public-journey-card">
       <div>{journey.journeyTitle}</div>
@@ -44,7 +43,7 @@ vi.mock('../components/PublicJourneyCard', () => ({
   )
 }))
 
-const mockedAxios = axios as unknown as { get: ReturnType<typeof vi.fn> }
+const mockedAxios = axios as unknown as { get: ReturnType<typeof jest.fn> }
 
 // Mock journey data
 const mockJourney = {
@@ -77,7 +76,7 @@ describe('RecipientReveal Component - Sharing Functionality', () => {
   })
 
   afterEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
   })
 
   const completeTheJourney = async () => {
@@ -87,7 +86,9 @@ describe('RecipientReveal Component - Sharing Functionality', () => {
 
     // Go through stops
     for (let i = 0; i < mockJourney.stops.length; i++) {
-      const nextButton = await screen.findByRole('button', { name: /Next/i })
+      const isLastStop = i === mockJourney.stops.length - 1
+      const buttonName = isLastStop ? /Finish/i : /Next/i
+      const nextButton = await screen.findByRole('button', { name: buttonName })
       fireEvent.click(nextButton)
     }
 
@@ -106,7 +107,7 @@ describe('RecipientReveal Component - Sharing Functionality', () => {
     const shareButton = await screen.findByRole('button', { name: /Share Your Gift/i })
     fireEvent.click(shareButton)
 
-    const modalTitle = await screen.findByText('Share Your Journey')
+    const modalTitle = await screen.findByText('Share this beautiful journey with others')
     expect(modalTitle).toBeInTheDocument()
 
     // Verify the preview card is in the modal
@@ -138,15 +139,15 @@ describe('RecipientReveal Component - Sharing Functionality', () => {
     fireEvent.click(shareButton)
 
     // Modal is open
-    const modalTitle = await screen.findByText('Share Your Journey')
+    const modalTitle = await screen.findByText('Share this beautiful journey with others')
     expect(modalTitle).toBeInTheDocument()
 
     // Click the close button
-    const closeButton = screen.getByLabelText(/close/i)
+    const closeButton = screen.getByTestId('Close-icon').closest('button')!
     fireEvent.click(closeButton)
 
     await waitFor(() => {
-      expect(screen.queryByText('Share Your Journey')).not.toBeInTheDocument()
+      expect(screen.queryByText('Share this beautiful journey with others')).not.toBeInTheDocument()
     })
   })
 })

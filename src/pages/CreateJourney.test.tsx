@@ -1,52 +1,55 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { BrowserRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router-dom'
 import axios from 'axios'
 import CreateJourney from './CreateJourney'
 
-const mockNavigate = vi.fn()
+const mockNavigate = jest.fn()
 
-// Mock react-router-dom
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom')
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  }
-})
+// Mock useNavigate hook specifically
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+}))
 
 // Mock axios
-vi.mock('axios', () => ({
+jest.mock('axios', () => ({
   default: {
-    post: vi.fn(),
+    post: jest.fn(),
   }
 }))
 
 // Mock @mui/icons-material
-vi.mock('@mui/icons-material', () => ({
-  Home: () => null
-}))
+jest.mock('@mui/icons-material', () => {
+  // Create a proxy to catch all named export requests
+  const iconProxy = new Proxy({ __esModule: true }, {
+    get: (_target, prop) => {
+      // For any icon (e.g., 'Home'), return a dummy component
+      return () => <div data-testid={`${String(prop)}-icon`} />;
+    }
+  });
+  return iconProxy;
+});
 
 const mockedAxios = axios as unknown as {
-  post: ReturnType<typeof vi.fn>
+  post: ReturnType<typeof jest.fn>
 }
 
 // Helper function to render component with router
 const renderWithRouter = (component: React.ReactElement) => {
   return render(
-    <BrowserRouter>
+    <MemoryRouter>
       {component}
-    </BrowserRouter>
+    </MemoryRouter>
   )
 }
 
 describe('CreateJourney Component', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
   })
 
   afterEach(() => {
-    vi.resetAllMocks()
+    jest.clearAllMocks()
   })
 
   it('renders create journey form with title input and create button', () => {
@@ -136,7 +139,7 @@ describe('CreateJourney Component', () => {
   })
 
   it('handles API error gracefully', async () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
     mockedAxios.post.mockRejectedValueOnce(new Error('Network error'))
 
     renderWithRouter(<CreateJourney />)

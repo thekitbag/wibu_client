@@ -1,27 +1,26 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import axios from 'axios'
 import PublicJourneyPage from './PublicJourneyPage'
 
 // Mock axios
-vi.mock('axios', () => ({
+jest.mock('axios', () => ({
   default: {
-    get: vi.fn(),
-    isAxiosError: vi.fn((error) => {
+    get: jest.fn(),
+    isAxiosError: jest.fn((error) => {
       return error && error.response !== undefined
     })
   }
 }))
 
 // Mock @mui/icons-material
-vi.mock('@mui/icons-material', () => ({
+jest.mock('@mui/icons-material', () => ({
   Home: () => null
 }))
 
 const mockedAxios = axios as unknown as {
-  get: ReturnType<typeof vi.fn>
-  isAxiosError: ReturnType<typeof vi.fn>
+  get: ReturnType<typeof jest.fn>
+  isAxiosError: ReturnType<typeof jest.fn>
 }
 
 // Helper function to render component with router
@@ -37,11 +36,11 @@ const renderWithRouter = (journeyId: string = 'test-journey-id') => {
 
 describe('PublicJourneyPage Component', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
   })
 
   afterEach(() => {
-    vi.resetAllMocks()
+    jest.clearAllMocks() // Use clearAllMocks instead of resetAllMocks for consistency
   })
 
   it('shows loading state initially', () => {
@@ -138,7 +137,7 @@ describe('PublicJourneyPage Component', () => {
   });
 
   it('handles network error gracefully', async () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
 
     const networkError = new Error('Network failed')
     mockedAxios.isAxiosError.mockReturnValueOnce(false)
