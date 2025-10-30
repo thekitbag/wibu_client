@@ -1,10 +1,9 @@
-import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import HomeNavigation from './HomeNavigation'
 
 // Mock @mui/icons-material
-vi.mock('@mui/icons-material', () => ({
+jest.mock('@mui/icons-material', () => ({
   Home: () => <div data-testid="home-icon">Home</div>
 }))
 

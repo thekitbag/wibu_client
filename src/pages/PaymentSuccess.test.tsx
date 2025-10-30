@@ -1,24 +1,23 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import axios from 'axios'
 import PaymentSuccess from './PaymentSuccess'
 
 // Mock axios
-vi.mock('axios', () => ({
+jest.mock('axios', () => ({
   default: {
-    get: vi.fn(),
+    get: jest.fn(),
   }
 }))
 
 // Mock @mui/icons-material
-vi.mock('@mui/icons-material', () => ({
+jest.mock('@mui/icons-material', () => ({
   CheckCircle: () => <div data-testid="check-circle">CheckCircle</div>,
   Home: () => null
 }))
 
 const mockedAxios = axios as unknown as {
-  get: ReturnType<typeof vi.fn>
+  get: ReturnType<typeof jest.fn>
 }
 
 // Helper function to render component with router and session_id
@@ -34,15 +33,15 @@ const renderWithRouter = (sessionId: string = 'test-session-id') => {
 
 describe('PaymentSuccess Component', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
     // Mock console.log and console.error to prevent test output noise
-    vi.spyOn(console, 'log').mockImplementation(() => {})
-    vi.spyOn(console, 'error').mockImplementation(() => {})
+    jest.spyOn(console, 'log').mockImplementation(() => {})
+    jest.spyOn(console, 'error').mockImplementation(() => {})
   })
 
   afterEach(() => {
-    vi.resetAllMocks()
-    vi.restoreAllMocks()
+    jest.clearAllMocks()
+    jest.restoreAllMocks()
   })
 
   it('shows verification loading state initially', () => {

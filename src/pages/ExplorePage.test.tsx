@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import axios from 'axios'
@@ -12,24 +11,24 @@ interface PublicJourney {
 }
 
 // Mock axios
-vi.mock('axios', () => ({
+jest.mock('axios', () => ({
   default: {
-    get: vi.fn(),
-    isAxiosError: vi.fn((error) => {
+    get: jest.fn(),
+    isAxiosError: jest.fn((error) => {
       return error && error.response !== undefined
     })
   }
 }))
 
 // Mock @mui/icons-material
-vi.mock('@mui/icons-material', () => ({
+jest.mock('@mui/icons-material', () => ({
   Explore: () => null,
   Home: () => null
 }))
 
 const mockedAxios = axios as unknown as {
-  get: ReturnType<typeof vi.fn>
-  isAxiosError: ReturnType<typeof vi.fn>
+  get: ReturnType<typeof jest.fn>
+  isAxiosError: ReturnType<typeof jest.fn>
 }
 
 // Helper function to render component with router
@@ -43,11 +42,11 @@ const renderWithRouter = (component: React.ReactElement) => {
 
 describe('ExplorePage Component', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
   })
 
   afterEach(() => {
-    vi.resetAllMocks()
+    jest.clearAllMocks()
   })
 
   it('shows loading state initially', () => {
@@ -102,15 +101,13 @@ describe('ExplorePage Component', () => {
   })
 
   it('shows error message when API call fails', async () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
 
-    // Create a proper axios error with response
     const axiosError = new Error('Network error') as Error & {
       response: { data: { error: string }, status: number }
     }
     axiosError.response = { data: { error: 'Failed to load journeys' }, status: 500 }
 
-    // Mock isAxiosError to return true for this error
     mockedAxios.isAxiosError.mockReturnValueOnce(true)
     mockedAxios.get.mockRejectedValueOnce(axiosError)
 
@@ -153,9 +150,8 @@ describe('ExplorePage Component', () => {
   })
 
   it('handles network error gracefully', async () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
 
-    // Mock a non-axios error
     const networkError = new Error('Network failed')
     mockedAxios.isAxiosError.mockReturnValueOnce(false)
     mockedAxios.get.mockRejectedValueOnce(networkError)
@@ -200,7 +196,6 @@ describe('ExplorePage Component', () => {
   })
 
   it('displays home navigation button', async () => {
-    // Mock successful API response so page renders fully
     const mockJourneys: PublicJourney[] = []
     mockedAxios.get.mockResolvedValueOnce({ data: mockJourneys })
 
