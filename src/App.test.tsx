@@ -3,6 +3,18 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import App from './App'
 
+// Mock @mui/icons-material to prevent EMFILE errors
+vi.mock('@mui/icons-material', () => {
+  // Create a proxy to catch all named export requests
+  const iconProxy = new Proxy({ __esModule: true }, {
+    get: (_target, prop) => {
+      // For any icon (e.g., 'FlightTakeoff'), return a dummy component
+      return () => <div data-testid={`${String(prop)}-icon`} />;
+    }
+  });
+  return iconProxy;
+});
+
 // Mock the page components
 vi.mock('./pages/CreateJourney', () => ({
   default: () => <div data-testid="create-journey-page">CreateJourney Component</div>

@@ -6,6 +6,8 @@ import CreateJourney from './pages/CreateJourney'
 import JourneyDetails from './pages/JourneyDetails'
 import PaymentSuccess from './pages/PaymentSuccess'
 import RecipientReveal from './pages/RecipientReveal'
+import ExplorePage from './pages/ExplorePage'
+import PublicJourneyPage from './pages/PublicJourneyPage'
 
 function App() {
   return (
@@ -242,7 +244,7 @@ function App() {
                 </Box>
 
                 {/* CTAs */}
-                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
                   <Button
                     component={Link}
                     to="/create"
@@ -262,6 +264,28 @@ function App() {
                     }}
                   >
                     Create New Journey
+                  </Button>
+                  <Button
+                    component={Link}
+                    to="/explore"
+                    variant="outlined"
+                    color="primary"
+                    size="large"
+                    sx={{
+                      px: 6,
+                      py: 2,
+                      fontSize: '1.2rem',
+                      fontWeight: 600,
+                      borderRadius: 3,
+                      borderColor: 'primary.main',
+                      color: 'primary.main',
+                      '&:hover': {
+                        borderColor: 'primary.light',
+                        backgroundColor: 'rgba(171, 71, 188, 0.1)',
+                      }
+                    }}
+                  >
+                    Explore Journeys
                   </Button>
                   <Button
                     component={Link}
@@ -290,10 +314,12 @@ function App() {
             </Container>
           </Box>
         } />
+        <Route path="/explore" element={<ExplorePage />} />
         <Route path="/create" element={<CreateJourney />} />
         <Route path="/journeys/:id" element={<JourneyDetails />} />
         <Route path="/journeys/:id/success" element={<PaymentSuccess />} />
         <Route path="/journeys/:id/preview" element={<RecipientReveal mode="preview" />} />
+        <Route path="/journeys/public/:journeyId" element={<PublicJourneyPage />} />
         <Route path="/reveal/:shareableToken" element={<RecipientReveal mode="final" />} />
       </Routes>
     </ThemeProvider>

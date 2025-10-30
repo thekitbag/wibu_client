@@ -4,6 +4,7 @@ import axios from 'axios'
 import { Container, Box, Typography, Card, CircularProgress, Alert, Button } from '@mui/material'
 import { CheckCircle } from '@mui/icons-material'
 import ShareableLink from '../components/ShareableLink'
+import HomeNavigation from '../components/HomeNavigation'
 
 interface Journey {
   id: string
@@ -96,7 +97,9 @@ const PaymentSuccess = () => {
 
   if (isLoading && verificationStatus === 'verifying') {
     return (
-      <Container maxWidth="sm">
+      <>
+        <HomeNavigation />
+        <Container maxWidth="sm">
         <Box
           sx={{
             display: 'flex',
@@ -127,12 +130,15 @@ const PaymentSuccess = () => {
           </Typography>
         </Box>
       </Container>
+      </>
     )
   }
 
   if (error || verificationStatus === 'timeout' || verificationStatus === 'error') {
     return (
-      <Container maxWidth="sm">
+      <>
+        <HomeNavigation />
+        <Container maxWidth="sm">
         <Box
           sx={{
             display: 'flex',
@@ -195,13 +201,16 @@ const PaymentSuccess = () => {
           </Box>
         </Box>
       </Container>
+      </>
     )
   }
 
   // Only show success state when verification is complete and we have journey data
   if (verificationStatus === 'complete' && journey) {
     return (
-      <Container maxWidth="md">
+      <>
+        <HomeNavigation />
+        <Container maxWidth="md">
       <Box
         sx={{
           display: 'flex',
@@ -313,12 +322,15 @@ const PaymentSuccess = () => {
 
         </Box>
       </Container>
+      </>
     )
   }
 
   // Fallback (should not reach here)
   return (
-    <Container maxWidth="sm">
+    <>
+      <HomeNavigation />
+      <Container maxWidth="sm">
       <Box
         sx={{
           display: 'flex',
@@ -330,6 +342,7 @@ const PaymentSuccess = () => {
         <CircularProgress />
       </Box>
     </Container>
+    </>
   )
 }
 

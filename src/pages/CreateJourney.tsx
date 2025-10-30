@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { Container, Box, Typography, TextField, Button, CircularProgress, Alert } from '@mui/material'
+import HomeNavigation from '../components/HomeNavigation'
 
 const CreateJourney = () => {
   const [title, setTitle] = useState('')
@@ -33,14 +34,16 @@ const CreateJourney = () => {
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #121212 100%)',
-        position: 'relative',
+    <>
+      <HomeNavigation />
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #121212 100%)',
+          position: 'relative',
         px: 2
       }}
     >
@@ -155,6 +158,7 @@ const CreateJourney = () => {
         </Box>
       </Container>
     </Box>
+    </>
   )
 }
 
