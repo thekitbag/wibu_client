@@ -103,7 +103,9 @@ describe('ExplorePage Component', () => {
   it('shows error message when API call fails', async () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
 
-    const axiosError: any = new Error('Network error')
+    const axiosError = new Error('Network error') as Error & {
+      response: { data: { error: string }, status: number }
+    }
     axiosError.response = { data: { error: 'Failed to load journeys' }, status: 500 }
 
     mockedAxios.isAxiosError.mockReturnValueOnce(true)

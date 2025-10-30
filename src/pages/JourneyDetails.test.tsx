@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import axios from 'axios'
 import JourneyDetails from './JourneyDetails'
@@ -97,7 +97,9 @@ describe('JourneyDetails Component', () => {
 
   it('shows error message when API call fails', async () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
-    const axiosError: any = new Error('Network error')
+    const axiosError = new Error('Network error') as Error & {
+      response: { data: { error: string }, status: number }
+    }
     axiosError.response = { data: { error: 'Failed to load journey' }, status: 500 }
     mockedAxios.isAxiosError.mockReturnValueOnce(true)
     mockedAxios.get.mockRejectedValueOnce(axiosError)
